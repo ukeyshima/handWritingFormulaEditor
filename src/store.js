@@ -6,20 +6,6 @@ class State {
   updateHandWritingFormulaArea(object){
     this.handWritingFormulaArea=object;
   }
-  @observable customizeState={
-    space:false,
-    indention:false,
-    symbol:false,
-    number:false,
-    input : false,
-    interruption : false,
-    event :false,
-    word:false
-  }
-  @action.bound
-  updateCustomizeState(object){
-    this.customizeState=object;
-  }
   @observable dontExecute=false;
   @action.bound
   updateDontExecute(bool){

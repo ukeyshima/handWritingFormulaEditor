@@ -7,7 +7,6 @@ import Header from "./header.jsx";
 import Tab from "./tab.jsx";
 import { Provider, inject, observer } from "mobx-react";
 import State from "./store.js";
-import registerServiceWorker from './registerServiceWorker';
 
 const stores = {
   state: new State()
@@ -36,4 +35,3 @@ ReactDOM.render(
     <HandWritingFormulaEditor/>,
   document.getElementById("root")
 );
-registerServiceWorker();

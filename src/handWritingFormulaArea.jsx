@@ -157,6 +157,7 @@ export default class HandWritingFormulaArea extends React.Component {
         onMouseMove={this.handleMouseMove}
         style={this.props.style}
         ref="handWritingFormulaArea"
+        id="handWritingFormulaArea"
       >
         <div ref="result" id="result">          
         </div>
