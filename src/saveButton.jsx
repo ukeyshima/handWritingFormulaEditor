@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { inject, observer } from "mobx-react";
 
 @inject("state")

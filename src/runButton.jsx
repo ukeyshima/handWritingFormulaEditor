@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { inject, observer } from "mobx-react";
 
 @inject("state")
@@ -29,16 +28,20 @@ export default class RunButton extends React.Component {
         scrolling: false
       });
       setTimeout(() => {
-        this.executeHTML();        
-        this.props.state.editor.session.$undoManager.$undoStack.push([{
-          group: "doc",
-          deltas: [{
-            start:this.props.state.editor.getCursorPosition(),
-            end:this.props.state.editor.getCursorPosition(),
-            action:"run",
-            lines:[""]
-          }]
-        }]);        
+        this.executeHTML();
+        this.props.state.editor.session.$undoManager.$undoStack.push([
+          {
+            group: "doc",
+            deltas: [
+              {
+                start: this.props.state.editor.getCursorPosition(),
+                end: this.props.state.editor.getCursorPosition(),
+                action: "run",
+                lines: [""]
+              }
+            ]
+          }
+        ]);
       }, 1);
     }
   }
@@ -65,7 +68,7 @@ export default class RunButton extends React.Component {
               scripts[i].src.split("/")[scripts[i].src.split("/").length - 1]
             );
           });
-          
+
           const blob = new Blob([targetOfJs.text], {
             type: "application/javascript"
           });

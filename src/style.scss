@@ -73,15 +73,15 @@ body {
   width: 30px;
 }
 
-.dropDown{
-  background-color: #fff;  
-  border-radius: 10px;  
-  color: #444;  
+.dropDown {
+  background-color: #fff;
+  border-radius: 10px;
+  color: #444;
   position: absolute;
-  z-index: 5;  
+  z-index: 5;
   text-align: center;
   box-shadow: 2px 2px 10px gray;
-  button{    
+  button {
     background-color: #fff;
     border: none;
     font-size: 15px;
@@ -90,33 +90,33 @@ body {
   }
 }
 
-#createTextForm {  
+#createTextForm {
   width: 160px;
-  height: 75px;   
-  button{
+  height: 75px;
+  button {
     background-color: #fff;
     border: none;
-    margin:0;
+    margin: 0;
     width: 160px;
-    height: 30px;   
+    height: 30px;
   }
 }
 
-#modeSelect{
-  width:200px;
-  height:60px;  
-  button{
+#modeSelect {
+  width: 200px;
+  height: 60px;
+  button {
     position: relative;
     font-size: 15px;
-    background-color:#fff;
-    border:none;
-    margin:0;
-    width:200px;
-    height:30px;
+    background-color: #fff;
+    border: none;
+    margin: 0;
+    width: 200px;
+    height: 30px;
   }
 }
 
-#fileName{
+#fileName {
   width: 80%;
   outline: 0;
   border: none;
@@ -127,64 +127,71 @@ body {
 }
 
 #extensionSelection {
-  z-index: 1;  
+  z-index: 1;
   width: 100%;
   font-size: 15px;
   color: #000;
   margin: 0;
 }
 
-#extensions{
-  position:absolute;
-  z-index:6;
-  background-color:#eee;
-  width:160px;
-  height:75px;
-  left:5px;
+#extensions {
+  position: absolute;
+  z-index: 6;
+  background-color: #eee;
+  width: 160px;
+  height: 75px;
+  left: 5px;
   box-shadow: 2px 2px 10px gray;
   border-radius: 7px;
-  overflow:auto;  
+  overflow: auto;
 }
-.extension{
-  margin:0;
-  padding:0;
-  font-size:15px;
+.extension {
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
 }
 
-#result{
-  background-color:#000;
-  height:20vh;  
+#result {
+  background-color: #000;
+  height: 20vh;
 }
-.handWritingFormulaAreaButton{
-  background-color:#55f;
-  color:#fff;
-  width:80px;
-  height:30px;
-  font-size:20px;
+.handWritingFormulaAreaButton {
+  background-color: #55f;
+  color: #fff;
+  width: 80px;
+  height: 30px;
+  font-size: 20px;
   position: absolute;
 }
-#handWritingFormulaArea{
-  position:relative;
+#handWritingFormulaArea {
+  position: relative;
 }
-
-#insertButton{
-  right:0px;
+#clearButton {
+  right: 320px;
   bottom: calc(80vh - 110px);
 }
-#convertButton{  
-  right: 80px;
-  bottom: calc(80vh - 110px);
-}
-#undoButton{  
-  right: 160px;
-  bottom: calc(80vh - 110px);
-}
-#redoButton{  
+#undoButton {
   right: 240px;
   bottom: calc(80vh - 110px);
 }
+#redoButton {
+  right: 160px;
+  bottom: calc(80vh - 110px);
+}
+#convertButton {
+  right: 80px;
+  bottom: calc(80vh - 110px);
+}
+#insertButton {
+  right: 0px;
+  bottom: calc(80vh - 110px);
+}
 
-#handWritingFormulaEditor{
-  background-color:#fff;
-  height:80vh;
+#handWritingFormulaEditor {
+  background-color: #fff;
+  height: 80vh;
+}
+.marker{
+  background-color:#f00;  
+  position:absolute;
 }

@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import ModeSelect from "./modeSelect.jsx";
 
 export default class Mode extends React.Component {
@@ -8,8 +7,8 @@ export default class Mode extends React.Component {
     this.state = {
       fontColor: "#444",
       click: false,
-      clickX:0,
-      clickY:0
+      clickX: 0,
+      clickY: 0
     };
     this.handleClick = this.handleClick.bind(this);
     this.handleDocumentClick = this.handleDocumentClick.bind(this);
@@ -17,18 +16,18 @@ export default class Mode extends React.Component {
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
   componentDidMount() {
-    document.addEventListener("click", this.handleDocumentClick);    
+    document.addEventListener("click", this.handleDocumentClick);
   }
   componentWillUnmount() {
     document.removeEventListener("click", this.handleDocumentClick);
   }
   handleClick(e) {
-      const clickX=e.nativeEvent.x;
-      const clickY=e.nativeEvent.y;
+    const clickX = e.nativeEvent.x;
+    const clickY = e.nativeEvent.y;
     this.setState({
       click: true,
-      clickX:clickX,
-      clickY:clickY
+      clickX: clickX,
+      clickY: clickY
     });
   }
   handleDocumentClick(e) {
@@ -45,31 +44,35 @@ export default class Mode extends React.Component {
   }
   handleMouseLeave() {
     this.setState({
-      fontColor: "#444",      
+      fontColor: "#444"
     });
   }
   render() {
     return (
-        <React.Fragment>
-      <button
-        id="mode"
-        style={{
-          color: this.state.fontColor
-        }}
-        onMouseLeave={this.handleMouseLeave}
-        onMouseEnter={this.handleMouseEnter}
-        onClick={this.handleClick}
-      >
-        mode        
-      </button>
-      {(() => {
-        if (this.state.click) {
-          return <ModeSelect style={{
-              x:this.state.clickX,
-              y:this.state.clickY
-          }}/>;
-        }
-      })()}
+      <React.Fragment>
+        <button
+          id="mode"
+          style={{
+            color: this.state.fontColor
+          }}
+          onMouseLeave={this.handleMouseLeave}
+          onMouseEnter={this.handleMouseEnter}
+          onClick={this.handleClick}
+        >
+          mode
+        </button>
+        {(() => {
+          if (this.state.click) {
+            return (
+              <ModeSelect
+                style={{
+                  x: this.state.clickX,
+                  y: this.state.clickY
+                }}
+              />
+            );
+          }
+        })()}
       </React.Fragment>
     );
   }

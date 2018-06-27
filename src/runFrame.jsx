@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { inject, observer } from "mobx-react";
 
 @inject("state")
@@ -85,7 +84,7 @@ export default class RunFrame extends React.Component {
         ) {
           this.props.state.handWritingFormulaArea.resize();
         }
-      }      
+      }
     }
   }
   handleMouseUp(e) {

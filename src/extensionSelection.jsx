@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import Extensions from "./extensions.jsx";
 
 export default class ExtensionSelection extends React.Component {
@@ -10,11 +9,11 @@ export default class ExtensionSelection extends React.Component {
       fontColor: "#000",
       click: false
     };
-    this.handleClick=this.handleClick.bind(this);
-    this.handleExtensionsClick=this.handleExtensionsClick.bind(this);
-    this.handleMouseEnter=this.handleMouseEnter.bind(this);
-    this.handleMouseLeave=this.handleMouseLeave.bind(this);    
-    this.selectionChange=this.selectionChange.bind(this);
+    this.handleClick = this.handleClick.bind(this);
+    this.handleExtensionsClick = this.handleExtensionsClick.bind(this);
+    this.handleMouseEnter = this.handleMouseEnter.bind(this);
+    this.handleMouseLeave = this.handleMouseLeave.bind(this);
+    this.selectionChange = this.selectionChange.bind(this);
   }
 
   handleClick(e) {

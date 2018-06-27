@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { inject, observer } from "mobx-react";
 
 @inject("state")
@@ -15,7 +14,7 @@ export default class StopButton extends React.Component {
     this.handleMouseEnter = this.handleMouseEnter.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
-  componentDidMount(){
+  componentDidMount() {
     this.props.state.updateStopButton(this.refs.stopButton);
   }
   handleClick() {
@@ -25,7 +24,7 @@ export default class StopButton extends React.Component {
       backgroundColor: "#eee",
       fontColor: "#e38"
     });
-    this.props.state.updateIframeElement(null);    
+    this.props.state.updateIframeElement(null);
     this.props.state.updateHotReload(false);
   }
   handleMouseEnter() {
@@ -43,7 +42,7 @@ export default class StopButton extends React.Component {
   render() {
     return (
       <button
-      ref="stopButton"
+        ref="stopButton"
         id="stop"
         style={{
           backgroundColor: this.state.backgroundColor,

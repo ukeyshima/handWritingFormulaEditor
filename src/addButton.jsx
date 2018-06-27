@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import CreateTextFileForm from "./createTextFileForm.jsx";
 
 export default class AddButton extends React.Component {

@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import SaveButton from "./saveButton.jsx";
 import LoadButton from "./loadButton.jsx";
 import { inject, observer } from "mobx-react";
@@ -21,8 +20,8 @@ export default class FileSelect extends React.Component {
           top: this.props.style.y
         }}
       >
-      <SaveButton/>
-      <LoadButton/>
+        <SaveButton />
+        <LoadButton />
       </div>
     );
   }

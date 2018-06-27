@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { inject, observer } from "mobx-react";
 import ExtensionSelection from "./extensionSelection.jsx";
 
@@ -27,10 +26,10 @@ export default class CreateTextFileForm extends React.Component {
       extensionName: extension
     });
   }
-  handleClick() {    
+  handleClick() {
     const text = this.props.state.editor.getValue();
     this.props.state.updateActiveText(text);
-    this.props.state.incrementId();    
+    this.props.state.incrementId();
     const id = this.props.state.id;
     const type = (() => {
       let result;

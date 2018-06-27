@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { inject, observer } from "mobx-react";
 
 @inject("state")
@@ -15,19 +14,19 @@ export default class LoadButton extends React.Component {
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
     this.handleChange = this.handleChange.bind(this);
   }
-  handleChange(e) {    
+  handleChange(e) {
     const file = e.target.files;
     const reader = new FileReader();
     reader.readAsText(file[0]);
-    reader.onload = () => {      
+    reader.onload = () => {
       this.props.state.editor.setValue(reader.result);
-    };    
-    delete this.inputFile; 
+    };
+    delete this.inputFile;
   }
   handleClick() {
     this.inputFile = document.createElement("input");
     this.inputFile.type = "file";
-    this.inputFile.addEventListener("change",  this.handleChange);
+    this.inputFile.addEventListener("change", this.handleChange);
     const e = document.createEvent("MouseEvents");
     e.initMouseEvent(
       "click",
@@ -45,7 +44,7 @@ export default class LoadButton extends React.Component {
       false,
       0,
       null
-    );    
+    );
     this.inputFile.dispatchEvent(e);
   }
   handleMouseLeave() {

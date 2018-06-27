@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { inject, observer } from "mobx-react";
 
 @inject("state")
@@ -11,12 +10,12 @@ export default class TextFileButton extends React.Component {
       mouseEnter: false,
       deleteMouseEnter: false
     };
-    this.handleClick=this.handleClick.bind(this);
-    this.handleDeleteClick=this.handleDeleteClick.bind(this);
-    this.handleDeleteMouseEnter=this.handleDeleteMouseEnter.bind(this);
-    this.handleDeleteMouseLeave=this.handleDeleteMouseLeave.bind(this);
-    this.handleMouseEnter=this.handleMouseEnter.bind(this);
-    this.handleMouseLeave=this.handleMouseLeave.bind(this);
+    this.handleClick = this.handleClick.bind(this);
+    this.handleDeleteClick = this.handleDeleteClick.bind(this);
+    this.handleDeleteMouseEnter = this.handleDeleteMouseEnter.bind(this);
+    this.handleDeleteMouseLeave = this.handleDeleteMouseLeave.bind(this);
+    this.handleMouseEnter = this.handleMouseEnter.bind(this);
+    this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
   handleMouseEnter() {
     this.setState({
@@ -40,23 +39,26 @@ export default class TextFileButton extends React.Component {
       deleteMouseEnter: false
     });
   }
-  handleClick( fileName, e) {
+  handleClick(fileName, e) {
     if (e.target.id !== "delete") {
       this.props.state.updateDontExecute(true);
       const text = this.props.state.editor.getValue();
-      this.props.state.updateActiveText(text);      
+      this.props.state.updateActiveText(text);
       const textFile = this.props.state.textFile;
       const activeFile = textFile.find(e => {
         return e.fileName === fileName;
       });
       this.props.state.changeActiveTextFile(activeFile);
-      this.props.state.editor.setValue(this.props.state.activeTextFile.text);     
+      this.props.state.editor.setValue(this.props.state.activeTextFile.text);
     }
   }
   handleDeleteClick(fileName) {
     this.props.state.updateDontExecute(true);
     const textFile = this.props.state.textFile;
-    const activeFile = this.props.state.activeTextFile.fileName===fileName?  textFile[0]:this.props.state.activeTextFile;
+    const activeFile =
+      this.props.state.activeTextFile.fileName === fileName
+        ? textFile[0]
+        : this.props.state.activeTextFile;
     this.props.state.editor.setValue(activeFile.text);
     this.props.state.changeActiveTextFile(activeFile);
     const targetFile = textFile.find((e, i) => {
@@ -119,9 +121,7 @@ export default class TextFileButton extends React.Component {
                     float: "left"
                   };
                 })()}
-                onClick={() =>
-                  this.handleDeleteClick( this.props.fileName)
-                }
+                onClick={() => this.handleDeleteClick(this.props.fileName)}
               >
                 ×
               </p>

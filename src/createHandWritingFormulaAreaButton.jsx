@@ -1,6 +1,5 @@
 //export to modeSelect.jsx
 import React from "react";
-import ReactDOM from "react-dom";
 import { inject, observer } from "mobx-react";
 
 @inject("state")
@@ -15,7 +14,7 @@ export default class CreateHandWritingFormulaArea extends React.Component {
     this.handleMouseEnter = this.handleMouseEnter.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
-  handleClick() {      
+  handleClick() {
     if (
       !this.props.state.renderingObject.some(e => {
         return e.type === "handWritingFormulaArea";
@@ -34,8 +33,8 @@ export default class CreateHandWritingFormulaArea extends React.Component {
         width: frontElementObjWidth * 0.3 - 3,
         scrolling: false
       });
-    }else{
-        this.props.state.removeRenderingObject("handWritingFormulaArea");
+    } else {
+      this.props.state.removeRenderingObject("handWritingFormulaArea");
     }
   }
   handleMouseLeave() {

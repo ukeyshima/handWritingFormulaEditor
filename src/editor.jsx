@@ -1,6 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
-import brace from "brace";
 import AceEditor from "react-ace";
 
 import "brace/mode/html";
@@ -39,42 +37,45 @@ export default class Editor extends React.Component {
     const text = this.props.state.editor.getValue();
     this.props.state.updateActiveText(text);
   }
+  shouldComponentUpdate(){
+    return this.props.state.shouldEditorUpdate;
+  }
   componentDidUpdate(nextProps) {
-    this.editor.setValue(nextProps.state.activeTextFile.text);
+    this.editor.setValue(nextProps.state.activeTextFile.text);   
   }
   componentDidMount() {
     this.editor = this.refs.aceEditor.editor;
+    this.editor.$blockScrolling = Infinity;
     this.props.state.updateEditor(this.editor);
     const self = this;
-    const AceUndoManager = this.editor.session.$undoManager;    
+    const AceUndoManager = this.editor.session.$undoManager;
     AceUndoManager.execute = function(options) {
       if (self.props.state.dontExecute === false) {
-      const activeId = self.props.state.activeTextFile.id;
-      var deltaSets = options.args[0];
-      this.$doc  = options.args[1];
-      if (options.merge && this.hasUndo()){
+        const activeId = self.props.state.activeTextFile.id;
+        var deltaSets = options.args[0];
+        this.$doc = options.args[1];
+        if (options.merge && this.hasUndo()) {
           this.dirtyCounter[activeId]--;
           deltaSets = this.$undoStack[activeId].pop().concat(deltaSets);
-      }
-      this.$undoStack[activeId].push(deltaSets);
-      this.$redoStack[activeId] = [];
-      if (this.dirtyCounter[activeId] < 0) {
+        }
+        this.$undoStack[activeId].push(deltaSets);
+        this.$redoStack[activeId] = [];
+        if (this.dirtyCounter[activeId] < 0) {
           this.dirtyCounter[activeId] = NaN;
+        }
+        this.dirtyCounter[activeId]++;
+      } else {
+        self.props.state.updateDontExecute(false);
       }
-      this.dirtyCounter[activeId]++;
-    } else {
-      self.props.state.updateDontExecute(false);
-    }
-    };    
-    AceUndoManager.undo = function(dontSelect) {     
-      const activeId = self.props.state.activeTextFile.id; 
-      console.log(activeId);
+    };
+    AceUndoManager.undo = function(dontSelect) {
+      const activeId = self.props.state.activeTextFile.id;
       var deltaSets = this.$undoStack[activeId].pop();
       var undoSelectionRange = null;
       if (deltaSets) {
-          undoSelectionRange = this.$doc.undoChanges(deltaSets, dontSelect);
-          this.$redoStack[activeId].push(deltaSets);
-          this.dirtyCounter[activeId]--;
+        undoSelectionRange = this.$doc.undoChanges(deltaSets, dontSelect);
+        this.$redoStack[activeId].push(deltaSets);
+        this.dirtyCounter[activeId]--;
       }
       return undoSelectionRange;
     };
@@ -83,20 +84,22 @@ export default class Editor extends React.Component {
       var deltaSets = this.$redoStack[activeId].pop();
       var redoSelectionRange = null;
       if (deltaSets) {
-          redoSelectionRange =
-              this.$doc.redoChanges(this.$deserializeDeltas(deltaSets), dontSelect);
-          this.$undoStack[activeId].push(deltaSets);
-          this.dirtyCounter[activeId]++;
+        redoSelectionRange = this.$doc.redoChanges(
+          this.$deserializeDeltas(deltaSets),
+          dontSelect
+        );
+        this.$undoStack[activeId].push(deltaSets);
+        this.dirtyCounter[activeId]++;
       }
       return redoSelectionRange;
-    };    
-    AceUndoManager.init=function(){
-     this.$undoStack=[];
-     this.$redoStack=[];
-     this.dirtyCounter=[];
-    }
-    AceUndoManager.reset = function() {      
-      const activeId = self.props.state.activeTextFile.id;      
+    };
+    AceUndoManager.init = function() {
+      this.$undoStack = [];
+      this.$redoStack = [];
+      this.dirtyCounter = [];
+    };
+    AceUndoManager.reset = function() {
+      const activeId = self.props.state.activeTextFile.id;
       this.$undoStack[activeId] = [];
       this.$redoStack[activeId] = [];
       this.dirtyCounter[activeId] = 0;

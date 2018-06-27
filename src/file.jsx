@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import FileSelect from "./fileSelect.jsx";
 
 export default class File extends React.Component {
@@ -22,7 +21,7 @@ export default class File extends React.Component {
   componentWillUnmount() {
     document.removeEventListener("click", this.handleDocumentClick);
   }
-  handleClick(e) {      
+  handleClick(e) {
     const clickX = e.nativeEvent.x;
     const clickY = e.nativeEvent.y;
     this.setState({
@@ -62,7 +61,7 @@ export default class File extends React.Component {
         >
           file
         </button>
-        {(() => {            
+        {(() => {
           if (this.state.click) {
             return (
               <FileSelect

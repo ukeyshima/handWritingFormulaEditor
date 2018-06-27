@@ -1,29 +1,30 @@
 import { observable, computed, action } from "mobx";
 
 class State {
-  @observable handWritingFormulaArea=null;
+  @observable handWritingFormulaArea = null;
   @action.bound
-  updateHandWritingFormulaArea(object){
-    this.handWritingFormulaArea=object;
+  updateHandWritingFormulaArea(object) {
+    this.handWritingFormulaArea = object;
   }
-  @observable dontExecute=false;
+  @observable dontExecute = false;
   @action.bound
-  updateDontExecute(bool){
-    this.dontExecute=bool;
+  updateDontExecute(bool) {
+    this.dontExecute = bool;
   }
-  @observable executeHTML=null;
-  @action.bound updateExecuteHTML(func){
-    this.executeHTML=func;
-  }
-  @observable runButton=null;
+  @observable executeHTML = null;
   @action.bound
-  updateRunButton(element){
-    this.runButton=element;
+  updateExecuteHTML(func) {
+    this.executeHTML = func;
   }
-  @observable stopButton=null;
+  @observable runButton = null;
   @action.bound
-  updateStopButton(element){
-    this.stopButton=element;
+  updateRunButton(element) {
+    this.runButton = element;
+  }
+  @observable stopButton = null;
+  @action.bound
+  updateStopButton(element) {
+    this.stopButton = element;
   }
   @observable hotReload = false;
   @action.bound
@@ -50,10 +51,10 @@ class State {
       !this.textFile.some(e => {
         return e.fileName === file.fileName;
       })
-    ){
+    ) {
       this.editor.setValue(file.text);
       this.textFile.push(file);
-      this.changeActiveTextFile(this.textFile[this.textFile.length - 1]);      
+      this.changeActiveTextFile(this.textFile[this.textFile.length - 1]);
     }
   }
   @action.bound
@@ -107,6 +108,26 @@ class State {
   updateRunButtonColor(obj) {
     this.runButtonColor = obj;
   }
+  @observable formulaInCodeId = 0;
+  @action.bound
+  incrementFormulaInCodeId() {
+    this.formulaInCodeId++;
+  }
+  @observable updateFormulaInCode = null;
+  @action.bound
+  updateUpdateFormulaInCode(func) {
+    this.updateFormulaInCode = func;
+  }
+  @observable changeFormulaInCodeAnchor = null;
+  @action.bound
+  updateChangeFormulaInCodeAnchor(func) {
+    this.changeFormulaInCodeAnchor = func;
+  }
+  @observable shouldEditorUpdate = true;
+  @action.bound
+  updateShouldEditorUpdate(bool) {
+    this.shouldEditorUpdate = bool;
+  }  
 }
 
 export default State;

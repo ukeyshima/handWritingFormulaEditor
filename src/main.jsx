@@ -7,6 +7,7 @@ import Header from "./header.jsx";
 import Tab from "./tab.jsx";
 import { Provider, inject, observer } from "mobx-react";
 import State from "./store.js";
+import DevTools from 'mobx-react-devtools';
 
 const stores = {
   state: new State()
@@ -18,20 +19,19 @@ class HandWritingFormulaEditor extends React.Component {
   }
   render() {
     return (
-      <Provider {...stores}>
+      <React.Fragment>
+        <Provider {...stores}>
         <React.Fragment>
           <Header />
           <RunAndStop />
           <Tab />
           <RenderingObject />
-        </React.Fragment>
-      </Provider>
+          </React.Fragment>
+        </Provider>
+        <DevTools />
+      </React.Fragment>
     );
   }
 }
 
-
-ReactDOM.render(  
-    <HandWritingFormulaEditor/>,
-  document.getElementById("root")
-);
+ReactDOM.render(<HandWritingFormulaEditor />, document.getElementById("root"));
