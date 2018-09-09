@@ -1,11 +1,11 @@
-import React from "react";
-import CreateTextFileForm from "./createTextFileForm.jsx";
+import React from 'react';
+import CreateTextFileForm from './createTextFileForm.jsx';
 
 export default class AddButton extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      fontColor: "#000",
+      fontColor: '#000',
       click: false,
       clickX: 0,
       clickY: 0
@@ -16,19 +16,19 @@ export default class AddButton extends React.Component {
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
   componentDidMount() {
-    document.addEventListener("click", this.handleDocumentClick);
+    document.addEventListener('click', this.handleDocumentClick);
   }
   componentWillUnmount() {
-    document.removeEventListener("click", this.handleDocumentClick);
+    document.removeEventListener('click', this.handleDocumentClick);
   }
   handleMouseEnter() {
     this.setState({
-      fontColor: "#e38"
+      fontColor: '#e38'
     });
   }
   handleMouseLeave() {
     this.setState({
-      fontColor: "#000"
+      fontColor: '#000'
     });
   }
   handleClick(e) {
@@ -40,11 +40,11 @@ export default class AddButton extends React.Component {
   }
   handleDocumentClick(e) {
     if (
-      e.target.id !== "addButton" &&
-      e.target.id !== "fileName" &&
-      e.target.id !== "extensionSelection" &&
-      e.target.id !== "extensions" &&
-      e.target.className !== "extension"
+      e.target.id !== 'addButton' &&
+      e.target.id !== 'fileName' &&
+      e.target.id !== 'extensionSelection' &&
+      e.target.id !== 'extensions' &&
+      e.target.className !== 'extension'
     ) {
       this.setState({
         click: false

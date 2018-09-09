@@ -1,16 +1,16 @@
-import React from "react";
-import { inject, observer } from "mobx-react";
-import ExtensionSelection from "./extensionSelection.jsx";
+import React from 'react';
+import { inject, observer } from 'mobx-react';
+import ExtensionSelection from './extensionSelection.jsx';
 
-@inject("state")
+@inject('state')
 @observer
 export default class CreateTextFileForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      inputValue: "main",
-      extensionName: "js",
-      createButtonFontColor: "#000"
+      inputValue: 'main',
+      extensionName: 'js',
+      createButtonFontColor: '#000'
     };
     this.handleClick = this.handleClick.bind(this);
     this.handleExtensionChange = this.handleExtensionChange.bind(this);
@@ -27,42 +27,59 @@ export default class CreateTextFileForm extends React.Component {
     });
   }
   handleClick() {
-    const text = this.props.state.editor.getValue();
-    this.props.state.updateActiveText(text);
-    this.props.state.incrementId();
-    const id = this.props.state.id;
-    const type = (() => {
-      let result;
-      switch (this.state.extensionName) {
-        case "js":
-          result = "javascript";
-          break;
-        case "css":
-          result = "css";
-          break;
-        case "glsl":
-          result = "glsl";
-          break;
-      }
-      return result;
-    })();
-    this.props.state.pushTextFile({
-      id: id,
-      type: type,
-      fileName: this.state.inputValue + "." + this.state.extensionName,
-      removed: false,
-      text: ""
-    });
-    this.props.state.editor.session.getUndoManager().reset();
+    if (
+      !this.props.state.textFile.some(e => {
+        return (
+          e.fileName === this.state.inputValue + '.' + this.state.extensionName
+        );
+      })
+    ) {
+      const undoManager = this.props.state.editor.session.$undoManager;
+      const undoStack = undoManager.$undoStack.concat();
+      const redoStack = undoManager.$redoStack.concat();
+      this.props.state.updateActiveUndoStack(undoStack);
+      this.props.state.updateActiveRedoStack(redoStack);
+      const text = this.props.state.editor.getValue();
+      this.props.state.updateActiveText(text);
+      this.props.state.editor.setValue('');
+      this.props.state.updateEditorValue('');
+      this.props.state.incrementId();
+      const id = this.props.state.id;
+      const type = (() => {
+        let result;
+        switch (this.state.extensionName) {
+          case 'js':
+            result = 'javascript';
+            break;
+          case 'css':
+            result = 'css';
+            break;
+          case 'glsl':
+            result = 'glsl';
+            break;
+        }
+        return result;
+      })();
+      this.props.state.pushTextFile({
+        id: id,
+        type: type,
+        fileName: this.state.inputValue + '.' + this.state.extensionName,
+        removed: false,
+        text: ''
+      });
+      setTimeout(() => {
+        this.props.state.editor.session.$undoManager.reset();
+      }, 10);
+    }
   }
   handleMouseEnter() {
     this.setState({
-      createButtonFontColor: "#e38"
+      createButtonFontColor: '#e38'
     });
   }
   handleMouseLeave() {
     this.setState({
-      createButtonFontColor: "#000"
+      createButtonFontColor: '#000'
     });
   }
   render() {

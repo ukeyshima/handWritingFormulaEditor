@@ -1,12 +1,13 @@
-import "./style.scss";
-import React from "react";
-import ReactDOM from "react-dom";
-import RunAndStop from "./runAndStop.jsx";
-import RenderingObject from "./renderingObject.jsx";
-import Header from "./header.jsx";
-import Tab from "./tab.jsx";
-import { Provider, inject, observer } from "mobx-react";
-import State from "./store.js";
+import './style.scss';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import RunAndStop from './runAndStop.jsx';
+import RenderingObject from './renderingObject.jsx';
+import 'pepjs';
+import Header from './header.jsx';
+import Tab from './tab.jsx';
+import { Provider, inject, observer } from 'mobx-react';
+import State from './store.js';
 import DevTools from 'mobx-react-devtools';
 
 const stores = {
@@ -21,17 +22,16 @@ class HandWritingFormulaEditor extends React.Component {
     return (
       <React.Fragment>
         <Provider {...stores}>
-        <React.Fragment>
-          <Header />
-          <RunAndStop />
-          <Tab />
-          <RenderingObject />
+          <React.Fragment>
+            <Header />
+            <RunAndStop />
+            <Tab />
+            <RenderingObject />
           </React.Fragment>
         </Provider>
-        <DevTools />
       </React.Fragment>
     );
   }
 }
 
-ReactDOM.render(<HandWritingFormulaEditor />, document.getElementById("root"));
+ReactDOM.render(<HandWritingFormulaEditor />, document.getElementById('root'));

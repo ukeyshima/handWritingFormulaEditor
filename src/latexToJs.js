@@ -1,335 +1,502 @@
-/*
- * Author: Tobi Ayilara
- * Website: http://crownie.tk
- * github: https://github.com/crownie/latex-to-js
- * 
- * Copyright 2014 Tobi Ayilara
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
-   use this file except in compliance with the License. You may obtain a copy
-   of the License at
-          
-   http://www.apache.org/licenses/LICENSE-2.0
-          
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-   License for the specific language governing permissions and limitations under
-   the License.
- */
-var latex_to_js = function(input) {
-  var init,
-    fraction,
-    square_root,
-    nth_root,
-    nth_power,
-    sin,
-    cos,
-    tan,
-    sinCosTanFramework,
-    convert_others;
+const katex = require('katex');
+const mathjs = require('mathjs');
+const mathIntegral = require('mathjs-simple-integral');
+const atl = require('asciimath-to-latex');
 
-  init = function() {
-    var st1 = input;
-    st1 = st1.replace(/\s/g, "");
-    st1 = st1.replace(/\\times/g, "*");
-    st1 = st1.replace(/\\cdot/g, "*");
-    st1 = st1.replace(/\\div/g, "/");
-	
-	st1 = st1.replace(/([0-9]+)([a-zA-Z]+)/g, "$1*$2");
+mathjs.import(mathIntegral);
+let latex2js,
+  radix,
+  frac,
+  pow,
+  sin,
+  cos,
+  tan,
+  leftright,
+  naturalLog,
+  log,
+  sum,
+  definiteIntegral,
+  indefiniteIntegral,
+  differential,
+  limit,
+  matrixParse,
+  matrix,
+  matrixMultiplication,
+  matrixAddition,
+  matrixSubtraction,
+  matrixShape,
+  shape,
+  nextMulti;
 
-    //pi
-    st1 = st1.replace(/([0-9a-zA-Z\.]+)\\pi/g, "$1*Math.PI");
-    st1 = st1.replace(/\\pi([0-9a-zA-Z\.]+)/g, "Math.PI*$1");
-    st1 = st1.replace(/([0-9a-zA-Z\.]+)\\pi([0-9a-zA-Z\.]+)/g, "$1*Math.PI*$2");
-    st1 = st1.replace(/\\pi/g, "Math.PI");    
-
-    st1 = fraction(st1);
-    st1 = square_root(st1);
-    st1 = nth_root(st1);
-    st1 = nth_power(st1);
-    st1 = sin(st1);
-    st1 = tan(st1);
-    st1 = cos(st1);
-    //clean up brackets
-    st1 = st1.replace(/\\left\(/g, "(");
-	st1 = st1.replace(/\\right\)/g, ")");
-	
-	st1 = st1.replace(/([0-9a-zA-Z\.]+)\Math/g, "$1*Math");
-	st1 = st1.replace(/\)Math/g, ")*Math");
-	st1 = st1.replace(/\)([0-9a-zA-Z\.]+)/g, ")*$1");
-		
-    return st1;
-  };
-
-  fraction = function(input) {
-    while (
-      input.search(/\\frac\{(((?![\{\}]).)*)\}\{(((?![\{\}]).)*)\}/) >= 0
-    ) {
-      input = input.replace(
-        /\\frac\{(((?![\{\}]).)*)\}\{(((?![\{\}]).)*)\}/g,
-        "($1)/($3)"
-      );
-    }
-    while (
-      input.search(/\\dfrac\{(((?![\{\}]).)*)\}\{(((?![\{\}]).)*)\}/) >= 0
-    ) {
-      input = input.replace(
-        /\\dfrac\{(((?![\{\}]).)*)\}\{(((?![\{\}]).)*)\}/g,
-        "($1)/($3)"
-      );
-    }
-
-    if (input.search(/\\frac/) >= 0) {
-      input = convert_others("fraction", input);
-    }
-    if (input.search(/\\dfrac/) >= 0) {
-      input = convert_others("fraction", input);
-    }
-
-    return input;
-  };
-
-  square_root = function(input) {
-    while (input.search(/\\sqrt\{(((?![\{\}]).)*)\}/) >= 0) {
-      input = input.replace(/\\sqrt\{(((?![\{\}]).)*)\}/g, "Math.sqrt($1)");
-    }
-
-    if (input.search(/\\sqrt\{/) >= 0) {
-      input = convert_others("square root", input);
-    }
-
-    return input;
-  };
-
-  nth_root = function(input) {
-    while (
-      input.search(/\\sqrt\[(((?![\{\}]).)*)\]\{(((?![\{\}]).)*)\}/) >= 0
-    ) {
-      input = input.replace(
-        /\\sqrt\[(((?![\{\}]).)*)\]\{(((?![\{\}]).)*)\}/g,
-        "Math.pow($3,1/$1)"
-      );
-    }
-    if (input.search(/\\sqrt\[/) >= 0) {
-      input = convert_others("nth root", input);
-    }
-    return input;
-  };
-
-  nth_power = function(input) {
-    //first case: single number with curly bracket power
-    while (input.search(/([0-9a-zA-Z\.]+)\^\{(((?![\{\}]).)*)\}/) >= 0) {
-      input = input.replace(
-        /([0-9a-zA-Z\.]+)\^\{(((?![\{\}]).)*)\}/g,
-        "Math.pow($1,$2)"
-      );
-    }
-    //second case: single number without curly bracket
-    while (input.search(/([0-9a-zA-Z\.]+)\^([0-9a-zA-Z\.]+)/) >= 0) {
-      input = input.replace(
-        /([0-9a-zA-Z\.]+)\^([0-9a-zA-Z\.]+)/g,
-        "Math.pow($1,$2)"
-      );
-    }
-
-    //third case: bracket number without curly bracket power
-    while (
-      input.search(
-        /\\left\(([0-9a-zA-Z\.\+\*\-\\]+)\\right\)\^([0-9a-zA-Z\.]+)/
-      ) >= 0
-    ) {
-      input = input.replace(
-        /\\left\(([0-9a-zA-Z\.\+\*\-\\]+)\\right\)\^([0-9a-zA-Z\.]+)/g,
-        "Math.pow($1,$2)"
-      );
-    }
-
-    //forth case: bracket number with curly bracket power
-    while (
-      input.search(
-        /\\left\(([0-9a-zA-Z\.\+\*\-\\]+)\\right\)\^\{(((?![\{\}]).)*)\}/
-      ) >= 0
-    ) {
-      input = input.replace(
-        /\\left\(([0-9a-zA-Z\.\+\*\-\\]+)\\right\)\^\{(((?![\{\}]).)*)\}/g,
-        "Math.pow($1,$2)"
-      );
-    }
-
-    //fifth case: bracket number with some brackets and division sign, with curly bracket power
-    while (
-      input.search(
-        /\\left\(([0-9a-zA-Z\.\+\*\-\\\(\)\/]+)\\right\)\^\{(((?![\{\}]).)*)\}/
-      ) >= 0
-    ) {
-      input = input.replace(
-        /\\left\(([0-9a-zA-Z\.\+\*\-\\\(\)\/]+)\\right\)\^\{(((?![\{\}]).)*)\}/g,
-        "Math.pow($1,$2)"
-      );
-    }
-
-    if (input.search(/\^/) >= 0) {
-      input = convert_others("nth power", input);
-    }
-    return input;
-  };
-
-  sin = function(input) {
-    return sinCosTanFramework("sin", input);
-  };
-
-  tan = function(input) {
-    return sinCosTanFramework("tan", input);
-  };
-
-  cos = function(input) {
-    return sinCosTanFramework("cos", input);
-  };
-
-  sinCosTanFramework = function(func, input) {
-    var pat1 = /\\sin\\left\(([0-9a-zA-Z\.\+\*\-\\\(\)\/]+)\\right\)/; //new RegExp("\\\\" + func + "\\\\left\\(([0-9a-zA-Z\\.\\+\\*\\-\\\\\\(\\)\\/]+)\\\\right\\)");
-
-    while (input.search(pat1) >= 0) {
-      input = input.replace(pat1, "Math." + func + "($1)");
-    }
-    var pat2 = new RegExp("\\\\" + func + "([0-9a-zA-Z]+)");
-    //eg:  /\\sin([0-9a-zA-Z]+)/:
-
-    while (input.search(pat2) >= 0) {
-      input = input.replace(pat2, "Math." + func + "($1)");
-    }
-
-    var pat3 = new RegExp("\\\\" + func);
-    //eg:  /\\sin/
-    if (input.search(pat3) >= 0) {
-      input = convert_others(func, input);
-    }
-
-    return input;
-  };
-
-  convert_others = function(func, input) {
-    var temp_input,
-      arr,
-      closest_pos,
-      func_pos,
-      frac_pos,
-      sqrt_pos,
-      root_pos,
-      pow_pos,
-      sin_pos,
-      cos_pos,
-      tan_pos;
-    switch (func) {
-      case "fraction":
-        temp_input = input.match(/\\frac.*/)[0];
-        func_pos = temp_input.search(/\\frac/);
-        break;
-      case "square root":
-        temp_input = input.match(/\\sqrt\{.*/)[0];
-        func_pos = temp_input.search(/\\sqrt\{/);
-        break;
-      case "nth root":
-        temp_input = input.match(/\\sqrt\[.*/)[0];
-        func_pos = temp_input.search(/\\sqrt\[/);
-        break;
-      case "nth power":
-        temp_input = input.match(/\^.*/)[0];
-        func_pos = temp_input.search(/\^/);
-        break;
-	  case "sin":
-	  console.log(input);
-	console.log(input.match(/\\sin\{.*/));
-        temp_input = input.match(/\\sin\{.*/)[0];
-        func_pos = temp_input.search(/\\sin\{/);
-        break;
-      case "tan":
-        temp_input = input.match(/\\tan\{.*/)[0];
-        func_pos = temp_input.search(/\\tan\{/);
-        break;
-      case "cos":
-        temp_input = input.match(/\\cos\{.*/)[0];
-        func_pos = temp_input.search(/\\cos\{/);
-        break;
-      default:
-        return;
-    }
-    frac_pos = temp_input.search(/\\frac/);
-    sqrt_pos = temp_input.search(/\\sqrt\{/);
-    root_pos = temp_input.search(/\\sqrt\[/);
-    pow_pos = temp_input.search(/\^/);
-    sin_pos = temp_input.search(/\\sin\{/);
-    tan_pos = temp_input.search(/\\tan\{/);
-    cos_pos = temp_input.search(/\\cos\{/);
-
-    arr = [frac_pos, root_pos, sqrt_pos, pow_pos, sin_pos, tan_pos, cos_pos];
-    arr.sort(function(a, b) {
-      return b - a;
-    });
-    //desc order
-
-    closest_pos = arr[arr.indexOf(0) - 1];
-
-    if (closest_pos <= 0 || closest_pos === undefined) {
-      throw "syntax error";
-    }
-
-    switch (closest_pos) {
-      case frac_pos:
-        input = fraction(input);
-        break;
-      case sqrt_pos:
-        input = square_root(input);
-        break;
-      case root_pos:
-        input = nth_root(input);
-        break;
-      case pow_pos:
-        input = nth_power(input);
-        break;
-      case sin_pos:
-        input = sin(input);
-        break;
-      case tan_pos:
-        input = tan(input);
-        break;
-      case cos_pos:
-        input = cos(input);
-        break;
-      default:
-    }
-
-    switch (func) {
-      case "fraction":
-        input = fraction(input);
-        break;
-      case "square root":
-        input = square_root(input);
-        break;
-      case "nth root":
-        input = nth_root(input);
-        break;
-      case "nth power":
-        input = nth_power(input);
-        break;
-      case "sin":
-        input = sin(input);
-        break;
-      case "tan":
-        input = tan(input);
-        break;
-      case "cos":
-        input = cos(input);
-        break;
-    }
-
-    return input;
-  };
-  //try{
-  return init();
-  /*}catch(e){
-		throw("syntax error");
-	}*/
+radix = input => {
+  return input.index
+    ? `Math.pow(${shape(input.body)},1/${shape(input.index.body)})`
+    : input.body.body[0].type === 'leftright'
+      ? `Math.sqrt${shape(input.body.body)}`
+      : `Math.sqrt(${shape(input.body.body)})`;
 };
 
-export default latex_to_js;
+frac = input => {
+  return `${shape(input.numer.body)}/${shape(input.denom.body)}`;
+};
+
+pow = input => {
+  return `Math.pow(${
+    input.base.type === 'leftright' ? shape(input.base.body) : shape(input.base)
+  },${
+    input.sup.body[0].type === 'leftright'
+      ? shape(input.sup.body[0].body)
+      : shape(input.sup.body)
+  })`;
+};
+
+sin = input => {
+  return input.type === 'leftright'
+    ? `Math.sin${shape(input)}`
+    : `Math.sin(${shape(input)})`;
+};
+
+cos = input => {
+  return input.type === 'leftright'
+    ? `Math.cos${shape(input)}`
+    : `Math.cos(${shape(input)})`;
+};
+
+tan = input => {
+  return input.type === 'leftright'
+    ? `Math.tan${shape(input)}`
+    : `Math.tan(${shape(input)})`;
+};
+
+leftright = input => {
+  let left = '(';
+  let right = ')';
+  if (input.left === '[') {
+    left = 'Math.floor(';
+  }
+  return `${left}${shape(input.body)}${right}`;
+};
+
+naturalLog = input => {
+  return input.type === 'leftright'
+    ? `Math.log${shape(input)}`
+    : `Math.log(${shape(input)})`;
+};
+
+log = input => {
+  const base = shape(input[0].sub.body);
+  const expression = input[1];
+  return expression.type === 'leftright'
+    ? `Math.log${shape(expression)}/Math.log(${base})`
+    : `Math.log(${shape(expression)})/Math.log(${base})`;
+};
+
+sum = input => {
+  const expression = shape(input.slice(1, input.length));
+  const start = shape(input[0].sub.body);
+  const end = shape(input[0].sup.body);
+  return `((() => {
+        let result = 0;
+        for(let ${start[0]}=${start.slice(2, start.length)};${
+    start[0]
+  }<${end};${start[0]}++){
+            result += ${expression};
+        }
+        return result;
+    })())`;
+};
+
+definiteIntegral = (input, deltaIndex) => {
+  const start = shape(input[0].sub.body);
+  const end = shape(input[0].sup.body);
+  const expression = shape(input.slice(1, deltaIndex)).replace(/Math\./g, '');
+  const val = shape(input[deltaIndex + 1]);
+  return `((${val}=>{return ${latex2js(
+    atl(mathjs.integral(expression, val).toString())
+  )}})(${end})-(${val}=>{return ${latex2js(
+    atl(mathjs.integral(expression, val).toString())
+  )}})(${start}))`;
+};
+
+indefiniteIntegral = (input, deltaIndex) => {
+  const expression = shape(input.slice(1, deltaIndex)).replace(/Math\./g, '');
+  const val = shape(input[deltaIndex + 1]);
+  return `(${latex2js(atl(mathjs.integral(expression, val).toString()))})`;
+};
+
+differential = input => {
+  const expression = shape(input.base)
+    .replace(/Math\./g, '')
+    .replace(/pow\((.*)\,(.*)\)/g, '$1^$2');
+  return mathjs.derivative(expression, 'x').toString();
+};
+
+limit = input => {
+  const index = input[0].sub.body.findIndex(e => {
+    return e.value === '\\rightarrow';
+  });
+  return `((${shape(input[0].sub.body.slice(0, index - 1))})=>${shape(
+    input[1]
+  )})(${shape(input[0].sub.body.slice(index, input[0].sub.body.length))})`;
+};
+
+matrixParse = input => {
+  input = input.replace(/\\\\[\s\n]*(\w)/g, '\\ $1');
+  return input;
+};
+
+matrix = input => {
+  input =
+    input.length === 1
+      ? shape(input[0])
+      : input.reduce((previousValue, currentValue) => {
+          return shape(previousValue).match(/\[$/) ||
+            currentValue.type === 'spacing'
+            ? `${shape(previousValue)}${shape(currentValue)}`
+            : `${shape(previousValue)},${shape(currentValue)}`;
+        });
+  return `[[${input}]]`;
+};
+
+matrixMultiplication = input => {
+  input = input.map(i => {
+    return typeof i === 'string'
+      ? eval(i)
+      : eval(matrix(i.body[0].body[0]).replace(/([a-zA-Z](\[\d\])?)/g, "'$1'"));
+  });
+  input =
+    input[0][0].length === 1 && input[1][0].length === 1
+      ? (input => {
+          let result = '';
+          input[0].forEach((e, i) => {
+            result += `+${e}*${input[1][i]}`;
+          });
+          result = result.slice(1, result.length);
+          return `(${result})`;
+        })(input)
+      : (input => {
+          input = input.reduce((previousValue, currentValue) => {
+            const o = [];
+            previousValue.forEach((e, i) => {
+              const q = [];
+              e.forEach((f, j) => {
+                let r = '';
+                for (let k = 0; k < currentValue.length; k++) {
+                  r += `+${f}*${currentValue[k][i]}`;
+                }
+                r = r.slice(1, r.length);
+                q.push(r);
+              });
+              o.push(q);
+            });
+            return o;
+          });
+          let result = '[';
+          input.forEach(e => {
+            result += '[';
+            e.forEach(f => {
+              result += f + ',';
+            });
+            result = result.slice(0, result.length - 1);
+            result += '],';
+          });
+          result = result.slice(0, result.length - 1);
+          result += ']';
+          return result;
+        })(input);
+  return input;
+};
+
+matrixAddition = input => {
+  input = input.map(i => {
+    return typeof i === 'string'
+      ? eval(i)
+      : eval(matrix(i.body[0].body[0]).replace(/([a-zA-Z](\[\d\])?)/g, "'$1'"));
+  });
+  input = input.reduce((pre, cur) => {
+    const o = [];
+    pre.forEach((e, i) => {
+      const q = [];
+      e.forEach((f, j) => {
+        let r = `${f}+${cur[i][j]}`;
+        q.push(r);
+      });
+      o.push(q);
+    });
+    return o;
+  });
+  let result = '[';
+  input.forEach(e => {
+    result += '[';
+    e.forEach(f => {
+      result += f + ',';
+    });
+    result = result.slice(0, result.length - 1);
+    result += '],';
+  });
+  result = result.slice(0, result.length - 1);
+  result += ']';
+  return result;
+};
+
+matrixSubtraction = input => {
+  input = input.map(i => {
+    return typeof i === 'string'
+      ? eval(i)
+      : eval(matrix(i.body[0].body[0]).replace(/([a-zA-Z](\[\d\])?)/g, "'$1'"));
+  });
+  input = input.reduce((pre, cur) => {
+    const o = [];
+    pre.forEach((e, i) => {
+      const q = [];
+      e.forEach((f, j) => {
+        let r = `${f}-${cur[i][j]}`;
+        q.push(r);
+      });
+      o.push(q);
+    });
+    return o;
+  });
+  let result = '[';
+  input.forEach(e => {
+    result += '[';
+    e.forEach(f => {
+      result += f + ',';
+    });
+    result = result.slice(0, result.length - 1);
+    result += '],';
+  });
+  result = result.slice(0, result.length - 1);
+  result += ']';
+  return result;
+};
+
+matrixShape = input => {
+  let result;
+  if (typeof input === 'string') return input;
+  if (input.length === 1) return matrix(input[0].body[0].body[0]);
+  switch (input[1].type) {
+    case 'leftright':
+      result = matrixShape(
+        matrixMultiplication(input.slice(0, 2)),
+        input.slice(2, input.length)
+      );
+      break;
+    case 'atom':
+      switch (input[1].text) {
+        case '+':
+          result = matrixShape(
+            matrixAddition([input[0], input[2]]),
+            input.slice(3, input.length)
+          );
+          break;
+        case '-':
+          result = matrixShape(
+            matrixSubtraction([input[0], input[2]]),
+            input.slice(3, input.length)
+          );
+          break;
+      }
+      break;
+  }
+  return result;
+};
+
+nextMulti = (input, num) => {
+  return input.length > num
+    ? (input[num].type !== 'atom' &&
+      input[num].type !== 'punct' &&
+      input[num].type !== 'bin'
+        ? '*'
+        : '') + shape(input.slice(num, input.length))
+    : ``;
+};
+
+shape = input => {
+  let result;
+  if (!Array.isArray(input)) {
+    switch (typeof input) {
+      case 'object':
+        input = [input];
+        break;
+      case 'string':
+        return input;
+      default:
+        break;
+    }
+  }
+  switch (input[0].type) {
+    case 'textord':
+      result = `${input[0].text === '\\infty' ? Infinity : input[0].text}${
+        input.length > 1
+          ? (input[1].type !== 'textord' &&
+            input[1].type !== 'atom' &&
+            input[1].type !== 'bin' &&
+            input[1].type !== 'spacing'
+              ? '*'
+              : '') + shape(input.slice(1, input.length))
+          : ``
+      }`;
+      break;
+    case 'mathord':
+      result = `${input[0].text === '\\pi' ? `Math.PI` : input[0].text}${
+        input.length > 1
+          ? input[1].type === 'leftright' && input[1].left === '['
+            ? `[${shape(input[1].body)}]${
+                input.length > 2
+                  ? (input[2].type !== 'atom' &&
+                    input[2].type !== 'punct' &&
+                    input[2].type !== 'bin' &&
+                    input[2].type !== 'spacing' &&
+                    (input[2].type === 'leftright'
+                      ? shape(input[2]).length !== 3 &&
+                        !/\,/.test(shape(input[1])) &&
+                        !input[2].left === '['
+                      : true)
+                      ? `*`
+                      : ``) + shape(input.slice(2, input.length))
+                  : ``
+              }`
+            : (input[1].type !== 'atom' &&
+              input[1].type !== 'punct' &&
+              input[1].type !== 'bin' &&
+              input[1].type !== 'spacing' &&
+              (input[1].type === 'leftright'
+                ? shape(input[1]).length !== 3 &&
+                  !/\,/.test(shape(input[1])) &&
+                  !input[1].left === '['
+                : true)
+                ? `*`
+                : ``) + shape(input.slice(1, input.length))
+          : ``
+      }`;
+      break;
+    case 'spacing':
+      result = `],[${
+        input.length > 1 ? shape(input.slice(1, input.length)) : ''
+      }`;
+      break;
+    case 'styling':
+      result = shape(input[0].body);
+      break;
+    case 'atom':
+      switch (input[0].text) {
+        case '\\cdot':
+          result = '*';
+          break;
+        default:
+          result = input[0].text;
+          break;
+      }
+      result += input.length > 1 ? shape(input.slice(1, input.length)) : ``;
+      break;
+    case 'punct':
+      result = `${input[0].value}${
+        input.length > 1 ? shape(input.slice(1, input.length)) : ``
+      }`;
+      break;
+    case 'ordgroup':
+      result = `${shape(input[0].body)}${nextMulti(input, 1)}`;
+      break;
+    case 'sqrt':
+      result = `${radix(input[0])}${nextMulti(input, 1)}`;
+      break;
+    case 'leftright':
+      result = `${
+        input[0].body[0].type === 'array'
+          ? input.length > 1
+            ? matrixShape(input)
+            : matrix(input[0].body[0].body[0])
+          : `${leftright(input[0])}${nextMulti(input, 1)}`
+      }`;
+      break;
+    case 'array':
+      result = shape(input[0].body[0][0]);
+      break;
+    case 'genfrac':
+      result = `${frac(input[0])}${nextMulti(input, 1)}`;
+      break;
+    case 'bin':
+      switch (input[0].value) {
+        case '\\cdot':
+          result = `*${shape(input.slice(1, input.length))}`;
+          break;
+        default:
+          result = `${input[0].value}${nextMulti(input, 1)}`;
+          break;
+      }
+      break;
+    case 'op':
+      switch (input[0].name) {
+        case '\\sin':
+          result = `${sin(input[1])}${nextMulti(input, 2)}`;
+          break;
+        case '\\cos':
+          result = `${cos(input[1])}${nextMulti(input, 2)}`;
+          break;
+        case '\\tan':
+          result = `${tan(input[1])}${nextMulti(input, 2)}`;
+          break;
+        case '\\log':
+          result = `${naturalLog(input[1])}${nextMulti(input, 2)}`;
+          break;
+        case '\\int':
+          const deltaIndex = input.findIndex(e => {
+            return e.type === 'mathord' && e.text === 'd';
+          });
+          result = `${indefiniteIntegral(input, deltaIndex)}${nextMulti(
+            input,
+            deltaIndex + 2
+          )}`;
+          break;
+        default:
+          break;
+      }
+      break;
+    case 'supsub':
+      if (input[0].sub) {
+        switch (input[0].base.name) {
+          case '\\log':
+            result = `${log(input)}${nextMulti(input, 2)}`;
+            break;
+          case '\\sum':
+            result = `${sum(input)}${nextMulti(input, 2)}`;
+            break;
+          case '\\int':
+            const deltaIndex = input.findIndex(e => {
+              return e.type === 'mathord' && e.text === 'd';
+            });
+            result = `${definiteIntegral(input, deltaIndex)}${nextMulti(
+              input,
+              deltaIndex + 2
+            )}`;
+            break;
+          case '\\lim':
+            result = `${limit(input)}${nextMulti(input, 2)}`;
+            break;
+          default:
+            break;
+        }
+      } else {
+        if (input[0].sup.body[0].text === '\\prime') {
+          result = `${differential(input[0])}${nextMulti(input, 1)}`;
+        } else {
+          result = `${pow(input[0])}${nextMulti(input, 1)}`;
+        }
+      }
+      break;
+    default:
+      result = `${input[0]}${nextMulti(input, 1)}`;
+      break;
+  }
+  return result;
+};
+
+export default (latex2js = input => {
+  while (input.search(/\n/) >= 0) {
+    input = input.replace(/\n/g, ' ');
+  }
+  input = matrixParse(input);
+  const parseTree = katex.__parse(input);
+  return shape(parseTree);
+});

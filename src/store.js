@@ -1,49 +1,71 @@
-import { observable, computed, action } from "mobx";
+import { observable, computed, action } from 'mobx';
 
 class State {
-  @observable handWritingFormulaArea = null;
+  @observable
+  editorValue = '';
+  @action.bound
+  updateEditorValue(text) {
+    this.editorValue = text;
+  }
+  @observable
+  handWritingFormulaArea = null;
   @action.bound
   updateHandWritingFormulaArea(object) {
     this.handWritingFormulaArea = object;
   }
-  @observable dontExecute = false;
+  @observable
+  resultElement = null;
   @action.bound
-  updateDontExecute(bool) {
-    this.dontExecute = bool;
+  updateResultElement(object) {
+    this.resultElement = object;
   }
-  @observable executeHTML = null;
+  @observable
+  executeHTML = null;
   @action.bound
   updateExecuteHTML(func) {
     this.executeHTML = func;
   }
-  @observable runButton = null;
+  @observable
+  runButton = null;
   @action.bound
   updateRunButton(element) {
     this.runButton = element;
   }
-  @observable stopButton = null;
+  @observable
+  stopButton = null;
   @action.bound
   updateStopButton(element) {
     this.stopButton = element;
   }
-  @observable hotReload = false;
+  @observable
+  hotReload = false;
   @action.bound
   updateHotReload(bool) {
     this.hotReload = bool;
   }
-  @observable editor;
+  @observable
+  editor = null;
   @action.bound
   updateEditor(editor) {
     this.editor = editor;
   }
-  @observable iframeElement = null;
+  @observable
+  iframeElement = null;
   @action.bound
   updateIframeElement(element) {
     this.iframeElement = element;
   }
   @observable
   textFile = [
-    { id: 0, type: "html", fileName: "index.html", removed: false, text: "" }
+    {
+      id: 0,
+      type: 'html',
+      fileName: 'index.html',
+      removed: false,
+      text: '',
+      undoStack: null,
+      redoStack: null
+    }
   ];
   @action.bound
   pushTextFile(file) {
@@ -62,7 +84,8 @@ class State {
     const nextTextFile = this.textFile.filter(e => e !== file);
     this.textFile = nextTextFile;
   }
-  @observable activeTextFile = this.textFile[0];
+  @observable
+  activeTextFile = this.textFile[0];
   @action.bound
   changeActiveTextFile(file) {
     this.activeTextFile = file;
@@ -71,12 +94,21 @@ class State {
   updateActiveText(text) {
     this.activeTextFile.text = text;
   }
-  @observable id = 0;
+  @action.bound
+  updateActiveUndoStack(undoStack) {
+    this.activeTextFile.undoStack = undoStack;
+  }
+  updateActiveRedoStack(redoStack) {
+    this.activeTextFile.redoStack = redoStack;
+  }
+  @observable
+  id = 0;
   @action.bound
   incrementId() {
     this.id++;
   }
-  @observable renderingObject = [{ type: "editor", width: window.innerWidth }];
+  @observable
+  renderingObject = [{ type: 'editor', width: window.innerWidth }];
   @action.bound
   sizeChange(num, width) {
     this.renderingObject[num].width = width;
@@ -96,38 +128,36 @@ class State {
       this.renderingObject.splice(targetNum, 1);
       const targetWidth = target.width;
       this.renderingObject[targetNum - 1].width +=
-        type === "run" ? targetWidth + 3 + 4 : targetWidth + 3;
+        type === 'run' ? targetWidth + 3 + 4 : targetWidth + 3;
     }
   }
   @observable
   runButtonColor = {
-    backgroundColor: "#eee",
-    fontColor: "#e38"
+    backgroundColor: '#eee',
+    fontColor: '#e38'
   };
   @action.bound
   updateRunButtonColor(obj) {
     this.runButtonColor = obj;
   }
-  @observable formulaInCodeId = 0;
+  @observable
+  formulaInCodeId = 0;
   @action.bound
   incrementFormulaInCodeId() {
     this.formulaInCodeId++;
   }
-  @observable updateFormulaInCode = null;
+  @observable
+  updateFormulaInCode = null;
   @action.bound
   updateUpdateFormulaInCode(func) {
     this.updateFormulaInCode = func;
   }
-  @observable changeFormulaInCodeAnchor = null;
+  @observable
+  changeFormulaInCodeAnchor = null;
   @action.bound
   updateChangeFormulaInCodeAnchor(func) {
     this.changeFormulaInCodeAnchor = func;
   }
-  @observable shouldEditorUpdate = true;
-  @action.bound
-  updateShouldEditorUpdate(bool) {
-    this.shouldEditorUpdate = bool;
-  }  
 }
 
 export default State;

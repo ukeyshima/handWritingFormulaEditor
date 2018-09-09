@@ -70,13 +70,8 @@ export default class RunFrame extends React.Component {
       if (this.props.state.renderingObject[this.props.num + 1].scrolling) {
         const width = this.props.state.renderingObject[this.props.num].width;
         const diff = width - e.clientX;
-        const nextElementWidth = this.props.state.renderingObject[
-          this.props.num + 1
-        ].width;
-        this.props.state.sizeChange(
-          this.props.num + 1,
-          nextElementWidth + diff
-        );
+        const nextElementWidth = this.props.state.renderingObject[this.props.num + 1].width;
+        this.props.state.sizeChange(this.props.num + 1, nextElementWidth + diff);
         this.props.state.sizeChange(this.props.num, width - diff);
         if (
           this.props.state.renderingObject[this.props.num + 1].type ===
