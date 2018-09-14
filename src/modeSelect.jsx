@@ -1,27 +1,28 @@
-import React from "react";
-import HotReloadButton from "./hotReloadButton.jsx";
-import CreateHandWritingFormulaArea from "./createHandWritingFormulaAreaButton.jsx";
-import { inject, observer } from "mobx-react";
+import React from 'react';
+import HotReloadButton from './hotReloadButton.jsx';
+import DemoButton from './demoButton.jsx';
+import DemoButton2 from './demoButton2.jsx';
+import DemoButton3 from './demoButton3.jsx';
+import { inject, observer } from 'mobx-react';
 
-@inject("state")
+@inject('state')
 @observer
 export default class ModeSelect extends React.Component {
-  constructor(props) {
-    super(props);
-  }
   render() {
     return (
       <div
         className="dropDown"
         id="modeSelect"
         style={{
-          position: "absolute",
+          position: 'absolute',
           left: this.props.style.x,
           top: this.props.style.y
         }}
       >
         <HotReloadButton />
-        <CreateHandWritingFormulaArea />
+        <DemoButton />
+        <DemoButton2 />
+        <DemoButton3 />
       </div>
     );
   }

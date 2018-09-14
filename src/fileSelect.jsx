@@ -1,21 +1,18 @@
-import React from "react";
-import SaveButton from "./saveButton.jsx";
-import LoadButton from "./loadButton.jsx";
-import { inject, observer } from "mobx-react";
+import React from 'react';
+import SaveButton from './saveButton.jsx';
+import LoadButton from './loadButton.jsx';
+import { inject, observer } from 'mobx-react';
 
-@inject("state")
+@inject('state')
 @observer
 export default class FileSelect extends React.Component {
-  constructor(props) {
-    super(props);
-  }
   render() {
     return (
       <div
         className="dropDown"
         id="modeSelect"
         style={{
-          position: "absolute",
+          position: 'absolute',
           left: this.props.style.x,
           top: this.props.style.y
         }}

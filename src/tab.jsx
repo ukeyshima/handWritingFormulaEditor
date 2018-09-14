@@ -1,14 +1,11 @@
-import React from "react";
-import AddButton from "./addButton.jsx";
-import { inject, observer } from "mobx-react";
-import TextFileButton from "./textFileButton.jsx";
+import React from 'react';
+import AddButton from './addButton.jsx';
+import { inject, observer } from 'mobx-react';
+import TextFileButton from './textFileButton.jsx';
 
-@inject("state")
+@inject('state')
 @observer
 export default class Tab extends React.Component {
-  constructor(props) {
-    super(props);
-  }
   render() {
     return (
       <div id="tab">

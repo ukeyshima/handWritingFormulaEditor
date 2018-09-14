@@ -2,22 +2,16 @@ import { observable, computed, action } from 'mobx';
 
 class State {
   @observable
+  tabChangeEvent = false;
+  @action.bound
+  updateTabChangeEvent(bool) {
+    this.tabChangeEvent = bool;
+  }
+  @observable
   editorValue = '';
   @action.bound
   updateEditorValue(text) {
     this.editorValue = text;
-  }
-  @observable
-  handWritingFormulaArea = null;
-  @action.bound
-  updateHandWritingFormulaArea(object) {
-    this.handWritingFormulaArea = object;
-  }
-  @observable
-  resultElement = null;
-  @action.bound
-  updateResultElement(object) {
-    this.resultElement = object;
   }
   @observable
   executeHTML = null;
@@ -108,55 +102,67 @@ class State {
     this.id++;
   }
   @observable
-  renderingObject = [{ type: 'editor', width: window.innerWidth }];
+  runAreaRenderingFlag = false;
   @action.bound
-  sizeChange(num, width) {
-    this.renderingObject[num].width = width;
+  updateRunAreaRenderingFlag(bool) {
+    this.runAreaRenderingFlag = bool;
   }
+  @observable
+  runAreaPosition = { x: window.innerWidth - 600, y: 100 };
   @action.bound
-  scrolling(num, bool) {
-    this.renderingObject[num].scrolling = bool;
-  }
-  @action.bound
-  pushRenderingObject(obj) {
-    this.renderingObject.push(obj);
-  }
-  removeRenderingObject(type) {
-    const target = this.renderingObject.find(e => e.type === type);
-    const targetNum = this.renderingObject.indexOf(target);
-    if (targetNum !== -1) {
-      this.renderingObject.splice(targetNum, 1);
-      const targetWidth = target.width;
-      this.renderingObject[targetNum - 1].width +=
-        type === 'run' ? targetWidth + 3 + 4 : targetWidth + 3;
-    }
+  updateRunAreaPosition(x, y) {
+    this.runAreaPosition.x = x;
+    this.runAreaPosition.y = y;
   }
   @observable
   runButtonColor = {
     backgroundColor: '#eee',
-    fontColor: '#e38'
+    fontColor: ' rgb(0, 185, 158)'
   };
   @action.bound
   updateRunButtonColor(obj) {
     this.runButtonColor = obj;
   }
   @observable
-  formulaInCodeId = 0;
+  handWritingFormulaAreas = [];
   @action.bound
-  incrementFormulaInCodeId() {
-    this.formulaInCodeId++;
+  pushHandWritingFormulaAreas(obj) {
+    this.handWritingFormulaAreas.push(obj);
+  }
+  @action.bound
+  updateHandWritingFormulaAreaAnchor(num, x, y) {
+    this.handWritingFormulaAreas[num].x = x;
+    this.handWritingFormulaAreas[num].y = y;
+  }
+  @action.bound
+  updateHandWritingFormulaAreaSize(num, width, height) {
+    this.handWritingFormulaAreas[num].width = width;
+    this.handWritingFormulaAreas[num].height = height;
+  }
+  @action.bound
+  updateHandWritingFormulaAreaVisible(num, bool) {
+    this.handWritingFormulaAreas[num].visible = bool;
+  }
+  @action.bound
+  updateHandWritingFormulaAreaExchange(num, bool) {
+    this.handWritingFormulaAreas[num].exchange = bool;
+  }
+  @action.bound
+  updateHandWritingFormulaAreaCodeEditor(num, editor) {
+    this.handWritingFormulaAreas[num].codeEditor = editor;
+  }
+  updateHandWritingFormulaAreaHandWritingFormulaEditor(num, editor) {
+    this.handWritingFormulaAreas[num].handWritingFormulaEditor = editor;
+  }
+  @action.bound
+  updateHandWritingFormulaAreaCode(num, code) {
+    this.handWritingFormulaAreas[num].code = code;
   }
   @observable
-  updateFormulaInCode = null;
+  handWritingFormulaAreaId = 0;
   @action.bound
-  updateUpdateFormulaInCode(func) {
-    this.updateFormulaInCode = func;
-  }
-  @observable
-  changeFormulaInCodeAnchor = null;
-  @action.bound
-  updateChangeFormulaInCodeAnchor(func) {
-    this.changeFormulaInCodeAnchor = func;
+  incrementHandWritingFormulaAreaId() {
+    this.handWritingFormulaAreaId++;
   }
 }
 

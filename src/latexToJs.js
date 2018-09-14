@@ -21,9 +21,9 @@ let latex2js,
   limit,
   matrixParse,
   matrix,
+  matrixs,
   matrixMultiplication,
-  matrixAddition,
-  matrixSubtraction,
+  matrixOperations,
   matrixShape,
   shape,
   nextMulti;
@@ -95,6 +95,7 @@ sum = input => {
   const expression = shape(input.slice(1, input.length));
   const start = shape(input[0].sub.body);
   const end = shape(input[0].sup.body);
+
   return `((() => {
         let result = 0;
         for(let ${start[0]}=${start.slice(2, start.length)};${
@@ -146,24 +147,59 @@ matrixParse = input => {
 };
 
 matrix = input => {
-  input =
-    input.length === 1
-      ? shape(input[0])
-      : input.reduce((previousValue, currentValue) => {
-          return shape(previousValue).match(/\[$/) ||
-            currentValue.type === 'spacing'
-            ? `${shape(previousValue)}${shape(currentValue)}`
-            : `${shape(previousValue)},${shape(currentValue)}`;
-        });
-  return `[[${input}]]`;
+  console.log(input);
+  let result = [];
+  let num = 0;
+  result[num] = [];
+  input.body[0].body[0].forEach(e => {
+    const index = e.body[0].body.findIndex(t => {
+      return t.type === 'spacing';
+    });
+    if (index === -1) {
+      result[num].push(shape(e.body[0].body));
+    } else {
+      result[num].push(shape(e.body[0].body.slice(0, index)));
+      num++;
+      result[num] = [];
+      result[num].push(
+        shape(e.body[0].body.slice(index + 1, e.body[0].body.length))
+      );
+    }
+  });
+  return result;
 };
 
-matrixMultiplication = input => {
+matrixs = input => {
+  console.log(input);
   input = input.map(i => {
-    return typeof i === 'string'
-      ? eval(i)
-      : eval(matrix(i.body[0].body[0]).replace(/([a-zA-Z](\[\d\])?)/g, "'$1'"));
+    let result;
+    const a = [];
+    let num = 0;
+    a[num] = [];
+    i.body[0].body[0].forEach(e => {
+      const index = e.body[0].body.findIndex(t => {
+        return t.type === 'spacing';
+      });
+      if (index === -1) {
+        a[num].push(shape(e.body[0].body));
+      } else {
+        a[num].push(shape(e.body[0].body.slice(0, index)));
+        num++;
+        a[num] = [];
+        a[num].push(
+          shape(e.body[0].body.slice(index + 1, e.body[0].body.length))
+        );
+      }
+    });
+    result = a;
+    return result;
   });
+  return input;
+};
+
+matrixMultiplication = (array, input) => {
+  input = matrixs(input);
+  input.unshift(array);
   input =
     input[0][0].length === 1 && input[1][0].length === 1
       ? (input => {
@@ -175,128 +211,70 @@ matrixMultiplication = input => {
           return `(${result})`;
         })(input)
       : (input => {
-          input = input.reduce((previousValue, currentValue) => {
+          let a = input[0];
+          for (let i = 1; i < input.length; i++) {
             const o = [];
-            previousValue.forEach((e, i) => {
+            a.forEach((e, j) => {
               const q = [];
-              e.forEach((f, j) => {
+              e.some((f, k) => {
+                console.log(e.length);
                 let r = '';
-                for (let k = 0; k < currentValue.length; k++) {
-                  r += `+${f}*${currentValue[k][i]}`;
+                for (let t = 0; t < e.length; t++) {
+                  r += `+${e[t]}*${input[i][t][k]}`;
                 }
-                r = r.slice(1, r.length);
+                r = '(' + r.slice(1, r.length) + ')';
                 q.push(r);
+                if (k === input[i][0].length - 1) return true;
               });
               o.push(q);
             });
-            return o;
-          });
-          let result = '[';
-          input.forEach(e => {
-            result += '[';
-            e.forEach(f => {
-              result += f + ',';
-            });
-            result = result.slice(0, result.length - 1);
-            result += '],';
-          });
-          result = result.slice(0, result.length - 1);
-          result += ']';
-          return result;
+            a = o;
+          }
+          return a;
         })(input);
   return input;
 };
 
-matrixAddition = input => {
-  input = input.map(i => {
-    return typeof i === 'string'
-      ? eval(i)
-      : eval(matrix(i.body[0].body[0]).replace(/([a-zA-Z](\[\d\])?)/g, "'$1'"));
-  });
-  input = input.reduce((pre, cur) => {
-    const o = [];
-    pre.forEach((e, i) => {
-      const q = [];
-      e.forEach((f, j) => {
-        let r = `${f}+${cur[i][j]}`;
-        q.push(r);
-      });
-      o.push(q);
+matrixOperations = (array, input, operations) => {
+  input = matrix(input);
+  const o = [];
+  array.forEach((e, j) => {
+    const q = [];
+    e.forEach((f, k) => {
+      q.push(f + operations + input[j][k]);
     });
-    return o;
+    o.push(q);
   });
-  let result = '[';
-  input.forEach(e => {
-    result += '[';
-    e.forEach(f => {
-      result += f + ',';
-    });
-    result = result.slice(0, result.length - 1);
-    result += '],';
-  });
-  result = result.slice(0, result.length - 1);
-  result += ']';
-  return result;
+  return o;
 };
 
-matrixSubtraction = input => {
-  input = input.map(i => {
-    return typeof i === 'string'
-      ? eval(i)
-      : eval(matrix(i.body[0].body[0]).replace(/([a-zA-Z](\[\d\])?)/g, "'$1'"));
-  });
-  input = input.reduce((pre, cur) => {
-    const o = [];
-    pre.forEach((e, i) => {
-      const q = [];
-      e.forEach((f, j) => {
-        let r = `${f}-${cur[i][j]}`;
-        q.push(r);
-      });
-      o.push(q);
-    });
-    return o;
-  });
-  let result = '[';
-  input.forEach(e => {
-    result += '[';
-    e.forEach(f => {
-      result += f + ',';
-    });
-    result = result.slice(0, result.length - 1);
-    result += '],';
-  });
-  result = result.slice(0, result.length - 1);
-  result += ']';
-  return result;
-};
-
-matrixShape = input => {
-  let result;
-  if (typeof input === 'string') return input;
-  if (input.length === 1) return matrix(input[0].body[0].body[0]);
-  switch (input[1].type) {
+matrixShape = (array, input) => {
+  let result = [];
+  switch (input[0].type) {
     case 'leftright':
-      result = matrixShape(
-        matrixMultiplication(input.slice(0, 2)),
-        input.slice(2, input.length)
-      );
+      const index = input.findIndex(e => {
+        return e.type !== 'leftright';
+      });
+      console.log(index);
+      if (index !== -1) {
+        console.log(input.slice(0, index));
+      }
+      result =
+        index === -1
+          ? matrixMultiplication(array, input)
+          : matrixShape(
+              matrixMultiplication(array, input.slice(0, index)),
+              input.slice(index, input.length)
+            );
       break;
     case 'atom':
-      switch (input[1].text) {
-        case '+':
-          result = matrixShape(
-            matrixAddition([input[0], input[2]]),
-            input.slice(3, input.length)
-          );
-          break;
-        case '-':
-          result = matrixShape(
-            matrixSubtraction([input[0], input[2]]),
-            input.slice(3, input.length)
-          );
-          break;
-      }
+      result =
+        input.length > 2
+          ? matrixShape(
+              matrixOperations(array, input[1], input[0].text),
+              input.slice(2, input.length)
+            )
+          : matrixOperations(array, input[1], input[0].text);
       break;
   }
   return result;
@@ -306,7 +284,8 @@ nextMulti = (input, num) => {
   return input.length > num
     ? (input[num].type !== 'atom' &&
       input[num].type !== 'punct' &&
-      input[num].type !== 'bin'
+      input[num].type !== 'bin' &&
+      input[num].type !== 'spacing'
         ? '*'
         : '') + shape(input.slice(num, input.length))
     : ``;
@@ -402,13 +381,12 @@ shape = input => {
       result = `${radix(input[0])}${nextMulti(input, 1)}`;
       break;
     case 'leftright':
-      result = `${
+      result =
         input[0].body[0].type === 'array'
           ? input.length > 1
-            ? matrixShape(input)
-            : matrix(input[0].body[0].body[0])
-          : `${leftright(input[0])}${nextMulti(input, 1)}`
-      }`;
+            ? `[${matrixShape(matrix(input[0]), input.slice(1, input.length))}]`
+            : `[${matrix(input[0])}]`
+          : `${leftright(input[0])}${nextMulti(input, 1)}`;
       break;
     case 'array':
       result = shape(input[0].body[0][0]);
@@ -493,6 +471,7 @@ shape = input => {
 };
 
 export default (latex2js = input => {
+  console.log(input)
   while (input.search(/\n/) >= 0) {
     input = input.replace(/\n/g, ' ');
   }

@@ -12,21 +12,16 @@ export default class CreateTextFileForm extends React.Component {
       extensionName: 'js',
       createButtonFontColor: '#000'
     };
-    this.handleClick = this.handleClick.bind(this);
-    this.handleExtensionChange = this.handleExtensionChange.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleMouseEnter = this.handleMouseEnter.bind(this);
-    this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
-  handleInputChange(e) {
+  handleInputChange = e => {
     this.setState({ inputValue: e.target.value });
-  }
-  handleExtensionChange(extension) {
+  };
+  handleExtensionChange = extension => {
     this.setState({
       extensionName: extension
     });
-  }
-  handleClick() {
+  };
+  handleClick = () => {
     if (
       !this.props.state.textFile.some(e => {
         return (
@@ -69,19 +64,19 @@ export default class CreateTextFileForm extends React.Component {
       });
       setTimeout(() => {
         this.props.state.editor.session.$undoManager.reset();
-      }, 10);
+      }, 1);
     }
-  }
-  handleMouseEnter() {
+  };
+  handleMouseEnter = () => {
     this.setState({
-      createButtonFontColor: '#e38'
+      createButtonFontColor: ' rgb(0, 185, 158)'
     });
-  }
-  handleMouseLeave() {
+  };
+  handleMouseLeave = () => {
     this.setState({
       createButtonFontColor: '#000'
     });
-  }
+  };
   render() {
     return (
       <div

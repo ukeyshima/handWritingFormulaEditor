@@ -43,6 +43,7 @@
     "myscript": "^4.2.0",
     "node-sass": "^4.9.0",
     "pepjs": "^0.4.3",
+    "raw-loader": "^0.5.1",
     "react": "^16.2.0",
     "react-ace": "^6.1.4",
     "react-decoration": "^2.0.0",

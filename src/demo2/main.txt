@@ -1,0 +1,61 @@
+const canvas=document.getElementById('canvas');
+canvas.width=canvas.clientWidth;
+canvas.height=canvas.clientHeight;
+const context=canvas.getContext('2d');
+
+context.fillStyle='#000';
+context.fillRect(0,0,canvas.width,canvas.height);
+
+const d=(a,b)=>{
+    return a[0]*b[0]+a[1]*b[1];
+}
+const f=(n)=>{
+    return n-Math.floor(n);
+}
+const r=[];
+r[0] = (x,y)=>{
+    return f(Math.sin(d([x,y],[12.9,78.2]))*437.5)*2.0-1.0;
+}
+r[1] = (x,y)=>{
+    return f(Math.sin(d([x,y],[47.3,23.6]))*892.1)*2.0-1.0;
+}
+const t=(x,y,r)=>{
+    return [x,y].map((e,i)=>e+r[i]);
+}
+const p = (x,y)=>{
+    const a=[x,y].map(i=>Math.floor(i));
+    let b=[x,y].map(i=>f(i));
+    const i=[];
+    i[0]=a;
+    i[1]=t(a[0],a[1],[1,0]);
+    i[2]=t(a[0],a[1],[0,1]);
+    i[3]=t(a[0],a[1],[1,1]);
+    const l=[];
+    l[0]=t(x,y,i[0].map(e=>-e));
+    l[1]=t(x,y,i[1].map(e=>-e));
+    l[2]=t(x,y,i[2].map(e=>-e));
+    l[3]=t(x,y,i[3].map(e=>-e));
+    const v=[];
+    v[0]=[r[0](i[0][0],i[0][1]),r[1](i[0][0],i[0][1])];
+    v[1]=[r[0](i[1][0],i[1][1]),r[1](i[1][0],i[1][1])];
+    v[2]=[r[0](i[2][0],i[2][1]),r[1](i[2][0],i[2][1])];
+    v[3]=[r[0](i[3][0],i[3][1]),r[1](i[3][0],i[3][1])];
+    b=b.map(e=>e*e*(3-2*e));
+    return ((d([v[0][0],v[0][1]],[l[0][0],l[0][1]])*(1-b[0])+d([v[1][0],v[1][1]],[l[1][0],l[1][1]])*b[0])*(1-b[1])+(d([v[2][0],v[2][1]],[l[2][0],l[2][1]])*(1-b[0])+d([v[3][0],v[3][1]],[l[3][0],l[3][1]])*b[0])*b[1])*0.5+0.5;
+}
+const o =(x,y) =>{
+    let v=0;
+    let m=0;
+    for(let i=0;i<5;i++){
+        v+=Math.pow(0.5,i)*p(x*Math.pow(2,i),y*Math.pow(2,i));
+        m+=Math.pow(0.5,i);
+    }
+    return v/m;
+}
+for(let x=0;x<1;x+=1/canvas.width){
+    for(let y=0;y<1;y+=1/canvas.height){
+        const brightness=Math.floor(o(x,y)*255);
+        context.fillStyle=`rgb(${brightness},${brightness},${brightness})`;
+        context.fillRect(x*canvas.width,y*canvas.height,x*canvas.width+1,y*canvas.height+1);
+    }
+}

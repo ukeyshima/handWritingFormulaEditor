@@ -1,0 +1,80 @@
+precision mediump float;
+uniform float time;
+uniform vec2 resolution;
+
+
+float r(vec2 p){
+    return fract(sin(dot(p,vec2(12.9,78.2)))*36.2);
+}
+float t(vec2 p){
+    return fract(sin(dot(p,vec2(31.7,91.3)))*63.12);
+}
+float n(vec2 p){
+    vec2 i=floor(p);
+    vec2 j=fract(p);
+    vec2 a=vec2(r(i),t(i));
+    vec2 b=vec2(r(i+vec2(1.0,0.0)),t(i+vec2(1.0,0.0)));
+    vec2 c=vec2(r(i+vec2(0.0,1.0)),t(i+vec2(0.0,1.0)));
+    vec2 d=vec2(r(i+vec2(1.0,1.0)),t(i+vec2(1.0,1.0)));
+    vec2 e=p-i;
+    vec2 f=p-(i+vec2(1.0,0.0));
+    vec2 g=p-(i+vec2(0.0,1.0));
+    vec2 h=p-(i+vec2(1.0,1.0));
+    j=j*j*(3.0-2.0*j);
+    return ((dot(a,e)*(1.0-j.x)+dot(b,f)*j.x)*(1.0-j.y)+(dot(c,g)*(1.0-j.x)+dot(d,h)*j.x)*j.y)*0.5+0.5;
+}
+float o(vec3 p){
+float value=0.0;
+float maxValue=0.0;
+for(float i=0.0;i<5.0;i++){
+    value+=pow(0.5,i)*n(vec2(p.x*pow(2.0,i),p.z*pow(2.0,i)));
+    maxValue+=pow(0.5,i);
+}
+return value/maxValue;
+}
+
+float m(vec3 p){
+    vec3 pos=vec3(0.0,1.0,0.0);
+    vec3 n=normalize(pos);
+    return dot(p,n)/5.0+o(p)*1.3;
+}
+
+float d(vec3 p){
+    float obj1;
+    obj1=m(p);
+    return obj1;
+}
+
+vec3 genNormal(vec3 p){
+    float delta=0.001;
+    return normalize(vec3(
+        d(p+vec3(delta,0.0,0.0))-d(p+vec3(-delta,0.0,0.0)),
+        d(p+vec3(0.0,delta,0.0))-d(p+vec3(0.0,-delta,0.0)),
+        d(p+vec3(0.0,0.0,delta))-d(p+vec3(0.0,0.0,-delta))
+        ));
+}
+
+void main(void){
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+    vec3 lightPos=vec3(30.0,30.0,0.0);
+    vec3 ambientColor=vec3(0.1);
+    vec3 cPos=vec3(0.0,-2.0,10.0);
+    cPos.z=-3.0*time;    
+    vec3 cDir=vec3(0.0,-0.5,-1.0);
+    vec3 cUp=vec3(0.0,1.0,0.0);
+    vec3 cSide=cross(cDir,cUp);
+    float targetDepth=1.0;
+    vec3 y=normalize(cSide*p.x+cUp*p.y+cDir*targetDepth);
+    vec3 z=cPos;
+    vec3 color=vec3(242.0/255.0,242.0/255.0,232.0/255.0);
+    float maxDist=10.0;
+    for(int i=0;i<70;i++){
+        z+=d(z)*y;
+    }
+    if(abs(d(z))<0.1){
+            color=vec3(o(vec3(z.x,0.0,0.0)),o(vec3(z.x,0.0,z.z)),o(vec3(0.0,0.0,z.z)));
+            vec3 normal=genNormal(z);
+            color=color*vec3(clamp(dot(lightPos,normal),0.0,1.0))+ambientColor;
+        }
+    gl_FragColor=vec4(color,1.0);
+}

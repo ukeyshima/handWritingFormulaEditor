@@ -9,11 +9,8 @@ export default class SaveButton extends React.Component {
     this.state = {
       fontColor: '#000'
     };
-    this.handleClick = this.handleClick.bind(this);
-    this.handleMouseEnter = this.handleMouseEnter.bind(this);
-    this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
-  download(data) {
+  download = data => {
     const e = document.createEvent('MouseEvents');
     e.initMouseEvent(
       'click',
@@ -40,8 +37,8 @@ export default class SaveButton extends React.Component {
     );
     a.dataset.downloadurl = ['text/plain', a.download, a.href].join(':');
     a.dispatchEvent(e);
-  }
-  handleClick() {
+  };
+  handleClick = () => {
     let data = this.props.state.editor.getValue();
     if (this.props.state.activeTextFile.fileName === 'index.html') {
       const domParser = new DOMParser();
@@ -71,17 +68,17 @@ export default class SaveButton extends React.Component {
       }
     }
     this.download(data);
-  }
-  handleMouseLeave() {
+  };
+  handleMouseLeave = () => {
     this.setState({
       fontColor: '#000'
     });
-  }
-  handleMouseEnter() {
+  };
+  handleMouseEnter = () => {
     this.setState({
-      fontColor: '#e38'
+      fontColor: ' rgb(0, 185, 158)'
     });
-  }
+  };
   render() {
     return (
       <button

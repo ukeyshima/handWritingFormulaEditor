@@ -15,9 +15,6 @@ const stores = {
 };
 
 class HandWritingFormulaEditor extends React.Component {
-  constructor(props) {
-    super(props);
-  }
   render() {
     return (
       <React.Fragment>

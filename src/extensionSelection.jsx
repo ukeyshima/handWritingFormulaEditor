@@ -1,46 +1,41 @@
-import React from "react";
-import Extensions from "./extensions.jsx";
+import React from 'react';
+import Extensions from './extensions.jsx';
 
 export default class ExtensionSelection extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selection: "js",
-      fontColor: "#000",
+      selection: 'js',
+      fontColor: '#000',
       click: false
     };
-    this.handleClick = this.handleClick.bind(this);
-    this.handleExtensionsClick = this.handleExtensionsClick.bind(this);
-    this.handleMouseEnter = this.handleMouseEnter.bind(this);
-    this.handleMouseLeave = this.handleMouseLeave.bind(this);
-    this.selectionChange = this.selectionChange.bind(this);
   }
 
-  handleClick(e) {
+  handleClick = () => {
     this.setState({
       click: true
     });
-  }
-  handleExtensionsClick(e) {
+  };
+  handleExtensionsClick = () => {
     this.setState({
       click: false
     });
-  }
-  handleMouseEnter() {
+  };
+  handleMouseEnter = () => {
     this.setState({
-      fontColor: "#e38"
+      fontColor: ' rgb(0, 185, 158)'
     });
-  }
-  handleMouseLeave() {
+  };
+  handleMouseLeave = () => {
     this.setState({
-      fontColor: "#000"
+      fontColor: '#000'
     });
-  }
-  selectionChange(selection) {
+  };
+  selectionChange = selection => {
     this.setState({
       selection: selection
     });
-  }
+  };
   render() {
     return (
       <React.Fragment>
@@ -53,7 +48,7 @@ export default class ExtensionSelection extends React.Component {
           onMouseLeave={this.handleMouseLeave}
           onClick={this.handleClick}
         >
-          {this.state.selection + " ▽"}
+          {this.state.selection + ' ▽'}
         </p>
         {(() => {
           if (this.state.click) {

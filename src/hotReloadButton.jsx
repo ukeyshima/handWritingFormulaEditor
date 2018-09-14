@@ -1,27 +1,21 @@
-import React from "react";
-import { inject, observer } from "mobx-react";
+import React from 'react';
+import { inject, observer } from 'mobx-react';
 
-@inject("state")
+@inject('state')
 @observer
 export default class HotReloadButton extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      fontColor: "#000"
+      fontColor: '#000'
     };
-    this.handleClick = this.handleClick.bind(this);
-    this.handleMouseEnter = this.handleMouseEnter.bind(this);
-    this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
-  handleClick() {
-    const run = this.props.state.renderingObject.find(e => {
-      return e.type === "run";
-    });
+  handleClick = () => {
     const bool = this.props.state.hotReload;
     this.props.state.updateHotReload(!bool);
-    const e = document.createEvent("MouseEvents");
+    const e = document.createEvent('MouseEvents');
     e.initMouseEvent(
-      "click",
+      'click',
       true,
       false,
       window,
@@ -37,26 +31,26 @@ export default class HotReloadButton extends React.Component {
       0,
       null
     );
-    if (run) {
+    if (this.props.state.iframeElement) {
       this.props.state.stopButton.dispatchEvent(e);
     } else {
       this.props.state.runButton.dispatchEvent(e);
       this.props.state.updateRunButtonColor({
-        backgroundColor: "#e38",
-        fontColor: "#eee"
+        backgroundColor: ' rgb(0, 185, 158)',
+        fontColor: '#eee'
       });
     }
-  }
-  handleMouseLeave() {
+  };
+  handleMouseLeave = () => {
     this.setState({
-      fontColor: "#000"
+      fontColor: '#000'
     });
-  }
-  handleMouseEnter() {
+  };
+  handleMouseEnter = () => {
     this.setState({
-      fontColor: "#e38"
+      fontColor: ' rgb(0, 185, 158)'
     });
-  }
+  };
   render() {
     return (
       <button

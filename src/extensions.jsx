@@ -1,36 +1,33 @@
-import React from "react";
+import React from 'react';
 
 export default class Extensions extends React.Component {
   constructor(props) {
     super(props);
-    this.extensions = ["js", "css", "glsl"];
+    this.extensions = ['js', 'css', 'glsl'];
     this.state = {
-      fontColor: ["#000", "#000", "#000"]
+      fontColor: ['#000', '#000', '#000']
     };
-    this.handleClick = this.handleClick.bind(this);
-    this.handleMouseEnter = this.handleMouseEnter.bind(this);
-    this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
 
-  handleMouseEnter(i) {
+  handleMouseEnter = i => {
     let fontColor = this.state.fontColor;
-    fontColor[i] = "#e38";
+    fontColor[i] = ' rgb(0, 185, 158)';
     this.setState({
       fontColor: fontColor
     });
-  }
-  handleMouseLeave(i) {
+  };
+  handleMouseLeave = i => {
     let fontColor = this.state.fontColor;
-    fontColor[i] = "#000";
+    fontColor[i] = '#000';
     this.setState({
       fontColor: fontColor
     });
-  }
-  handleClick(i) {
+  };
+  handleClick = i => {
     this.props.selectionchange(this.extensions[i]);
     this.props.extensionchange(this.extensions[i]);
     this.props.handleextensionsclick();
-  }
+  };
   render() {
     return (
       <div id="extensions">

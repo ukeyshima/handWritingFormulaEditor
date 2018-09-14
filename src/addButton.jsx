@@ -10,10 +10,6 @@ export default class AddButton extends React.Component {
       clickX: 0,
       clickY: 0
     };
-    this.handleClick = this.handleClick.bind(this);
-    this.handleDocumentClick = this.handleDocumentClick.bind(this);
-    this.handleMouseEnter = this.handleMouseEnter.bind(this);
-    this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
   componentDidMount() {
     document.addEventListener('click', this.handleDocumentClick);
@@ -21,24 +17,24 @@ export default class AddButton extends React.Component {
   componentWillUnmount() {
     document.removeEventListener('click', this.handleDocumentClick);
   }
-  handleMouseEnter() {
+  handleMouseEnter = () => {
     this.setState({
-      fontColor: '#e38'
+      fontColor: ' rgb(0, 185, 158)'
     });
-  }
-  handleMouseLeave() {
+  };
+  handleMouseLeave = () => {
     this.setState({
       fontColor: '#000'
     });
-  }
-  handleClick(e) {
+  };
+  handleClick = e => {
     this.setState({
       click: true,
       clickX: e.nativeEvent.x,
       clickY: e.nativeEvent.y
     });
-  }
-  handleDocumentClick(e) {
+  };
+  handleDocumentClick = e => {
     if (
       e.target.id !== 'addButton' &&
       e.target.id !== 'fileName' &&
@@ -50,7 +46,7 @@ export default class AddButton extends React.Component {
         click: false
       });
     }
-  }
+  };
   render() {
     return (
       <React.Fragment>

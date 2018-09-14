@@ -1,12 +1,10 @@
 import React from 'react';
 import AceEditor from 'react-ace';
-import SaveButton from './saveButton.jsx';
 import 'brace/mode/html';
 import 'brace/mode/javascript';
 import 'brace/mode/glsl';
 import 'brace/mode/css';
 import 'brace/theme/dawn';
-
 import { inject, observer } from 'mobx-react';
 
 @inject('state')
@@ -14,25 +12,20 @@ import { inject, observer } from 'mobx-react';
 export default class Editor extends React.Component {
   constructor(props) {
     super(props);
-    this.handleResize = this.handleResize.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    this.width = window.innerWidth;
+    this.state = {
+      width: window.innerWidth,
+      height: window.innerHeight - 110
+    };
   }
-  handleResize() {
-    let diff = -3;
-    this.props.state.renderingObject.forEach(e => {
-      diff += 3;
-      if (e.type == 'run') {
-        diff += 4;
-      }
+
+  handleResize = () => {
+    this.setState({
+      width: window.innerWidth,
+      height: window.innerHeight - 110
     });
-    const per = (window.innerWidth - diff) / (this.width - diff);
-    const width = this.props.state.renderingObject[this.props.num].width;
-    this.props.state.sizeChange(this.props.num, width * per);
-    this.width = window.innerWidth;
     this.editor.resize();
-  }
-  componentDidMount() {
+  };
+  componentDidMount = () => {
     const editor = this.refs.aceEditor.editor;
     this.editor = editor;
     editor.resize();
@@ -53,87 +46,70 @@ export default class Editor extends React.Component {
       readOnly: true
     });
     window.addEventListener('resize', this.handleResize);
-  }
+  };
   componentWillUnmount() {
     window.removeEventListener('resize', this.handleResize);
   }
-  handleChange(e) {
+  handleChange = e => {
     this.props.state.updateEditorValue(e);
-    this.editor.resize();
+    this.props.state.handWritingFormulaAreas.forEach((e, i) => {
+      const searchWord = `/*${i}*/`;
+      this.editor.$search.setOptions({ needle: searchWord, regExp: false });
+      const range = this.editor.$search.findAll(this.editor.session);
+      if (range.length > 0) {
+        const position = this.editor.renderer.textToScreenCoordinates(
+          range[0].start
+        );
+        this.props.state.updateHandWritingFormulaAreaAnchor(
+          i,
+          position.pageX,
+          position.pageY
+        );
+        this.props.state.updateHandWritingFormulaAreaVisible(i, true);
+      } else {
+        this.props.state.updateHandWritingFormulaAreaVisible(i, false);
+      }
+    });
     if (this.props.state.hotReload) {
-      setTimeout(() => {
-        this.props.state.updateActiveText(e);
-        this.executeHTML();
-      }, 15);
+      this.props.state.updateActiveText(e);
+      this.props.state.executeHTML(this.props.state.textFile);
     }
-  }
+  };
 
-  executeHTML() {
-    const domParser = new DOMParser();
-    let document_obj = null;
-    const textFile = this.props.state.textFile;
-    try {
-      document_obj = domParser.parseFromString(textFile[0].text, 'text/html');
-      if (document_obj.getElementsByTagName('parsererror').length) {
-        document_obj = null;
+  handleScroll = () => {
+    this.props.state.handWritingFormulaAreas.forEach((e, i) => {
+      const searchWord = `/*${i}*/`;
+      this.editor.$search.setOptions({ needle: searchWord, regExp: false });
+      const range = this.editor.$search.findAll(this.editor.session);
+      console.log(range);
+      if (range.length > 0) {
+        const position = this.editor.renderer.textToScreenCoordinates(
+          range[0].start
+        );
+        this.props.state.updateHandWritingFormulaAreaAnchor(
+          i,
+          this.props.state.handWritingFormulaAreas[i].x,
+          position.pageY
+        );
+        this.props.state.updateHandWritingFormulaAreaVisible(i, true);
+      } else {
+        this.props.state.updateHandWritingFormulaAreaVisible(i, false);
       }
-    } catch (e) {
-      console.log(e);
-    }
-    if (document_obj) {
-      const scripts = document_obj.getElementsByTagName('script');
-      const links = document_obj.getElementsByTagName('link');
-      for (let i = 0; i < scripts.length; i++) {
-        if (scripts[i].src) {
-          const targetOfJs = textFile.find(e => {
-            return (
-              e.fileName ===
-              scripts[i].src.split('/')[scripts[i].src.split('/').length - 1]
-            );
-          });
-
-          const blob = new Blob([targetOfJs.text], {
-            type: 'application/javascript'
-          });
-          scripts[i].src = URL.createObjectURL(blob);
-        } else {
-          const targetOfNotJs = textFile.find(e => {
-            return e.fileName === scripts[i].type;
-          });
-          scripts[i].text = targetOfNotJs.text;
-        }
-      }
-      for (let i = 0; i < links.length; i++) {
-        const targetOfCss = textFile.find(e => {
-          return (
-            e.type === 'css' &&
-            links[i].rel === 'stylesheet' &&
-            links[i].href.split('/')[links[i].href.split('/').length - 1] ===
-              e.fileName
-          );
-        });
-        if (targetOfCss) {
-          const blob = new Blob([targetOfCss.text], { type: 'text/css' });
-          links[i].href = URL.createObjectURL(blob);
-        }
-      }
-      const blob = new Blob([document_obj.documentElement.outerHTML], {
-        type: 'text/html'
-      });
-      this.props.state.iframeElement.contentWindow.location.replace(
-        URL.createObjectURL(blob)
-      );
-    }
-  }
+    });
+  };
 
   render() {
     return (
       <AceEditor
-        style={this.props.style}
+        style={{
+          width: this.state.width,
+          height: this.state.height
+        }}
         ref="aceEditor"
         mode={this.props.state.activeTextFile.type}
         theme="dawn"
         onChange={this.handleChange}
+        onScroll={this.handleScroll}
         value={this.props.state.editorValue}
         fontSize={27}
         editorProps={{

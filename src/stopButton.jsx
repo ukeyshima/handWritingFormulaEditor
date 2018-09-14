@@ -1,49 +1,46 @@
-import React from "react";
-import { inject, observer } from "mobx-react";
+import React from 'react';
+import { inject, observer } from 'mobx-react';
+import { FaSquare } from 'react-icons/fa';
 
-@inject("state")
+@inject('state')
 @observer
 export default class StopButton extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      backgroundColor: "#eee",
-      fontColor: "#e38"
+      backgroundColor: '#eee',
+      fontColor: ' rgb(0, 185, 158)'
     };
-    this.handleClick = this.handleClick.bind(this);
-    this.handleMouseEnter = this.handleMouseEnter.bind(this);
-    this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
   componentDidMount() {
     this.props.state.updateStopButton(this.refs.stopButton);
   }
-  handleClick() {
+  handleClick = () => {
     this.props.state.updateActiveText(this.props.state.editor.getValue());
-    this.props.state.removeRenderingObject("run");
+    this.props.state.updateRunAreaRenderingFlag(false);
     this.props.state.updateRunButtonColor({
-      backgroundColor: "#eee",
-      fontColor: "#e38"
+      backgroundColor: '#eee',
+      fontColor: ' rgb(0, 185, 158)'
     });
     this.props.state.updateIframeElement(null);
     this.props.state.updateHotReload(false);
-  }
-  handleMouseEnter() {
+  };
+  handleMouseEnter = () => {
     this.setState({
-      backgroundColor: "#e38",
-      fontColor: "#eee"
+      backgroundColor: ' rgb(0, 185, 158)',
+      fontColor: '#eee'
     });
-  }
-  handleMouseLeave() {
+  };
+  handleMouseLeave = () => {
     this.setState({
-      backgroundColor: "#eee",
-      fontColor: "#e38"
+      backgroundColor: '#eee',
+      fontColor: ' rgb(0, 185, 158)'
     });
-  }
+  };
   render() {
     return (
       <button
         ref="stopButton"
-        id="stop"
         style={{
           backgroundColor: this.state.backgroundColor,
           color: this.state.fontColor
@@ -52,7 +49,7 @@ export default class StopButton extends React.Component {
         onMouseLeave={this.handleMouseLeave}
         onMouseEnter={this.handleMouseEnter}
       >
-        ■
+        <FaSquare />
       </button>
     );
   }
