@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script id="vs" type="vertexShader.glsl"></script>
+        <script id="fs" type="fragmentShader.glsl"></script>
+        <link rel="stylesheet" href="main.css">
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <script src="main.js"></script>
+    </body>
+</html>

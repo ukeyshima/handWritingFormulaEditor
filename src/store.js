@@ -78,6 +78,10 @@ class State {
     const nextTextFile = this.textFile.filter(e => e !== file);
     this.textFile = nextTextFile;
   }
+  @action.bound
+  clearTextFile() {
+    this.textFile = [];
+  }
   @observable
   activeTextFile = this.textFile[0];
   @action.bound
@@ -157,6 +161,9 @@ class State {
   @action.bound
   updateHandWritingFormulaAreaCode(num, code) {
     this.handWritingFormulaAreas[num].code = code;
+  }
+  updateHandWritingFormulaAreaStartRow(num, row) {
+    this.handWritingFormulaAreas[num].startRow = row;
   }
   @observable
   handWritingFormulaAreaId = 0;

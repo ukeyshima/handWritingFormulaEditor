@@ -27,8 +27,15 @@ export default class DemoButton extends React.Component {
     this.props.state.updateEditorValue('');
   };
   handleClick = () => {
-    this.props.state.editor.setValue(html);
-    this.props.state.updateEditorValue(html);
+    this.props.state.clearTextFile();
+    this.undoStackReset();
+    this.props.state.pushTextFile({
+      id: 0,
+      type: 'html',
+      fileName: 'index.html',
+      removed: false,
+      text: html
+    });
     this.undoStackReset();
     this.props.state.pushTextFile({
       id: 1,

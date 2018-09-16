@@ -9,6 +9,8 @@ export default class RunButton extends React.Component {
     this.props.state.updateRunButton(this.refs.runButton);
   }
   handleClick = () => {
+    const text = this.props.state.editor.getValue();
+    this.props.state.updateActiveText(text);
     this.props.state.updateRunAreaRenderingFlag(true);
   };
 

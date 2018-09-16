@@ -6,7 +6,6 @@ import 'myscript/dist/myscript.min.css';
 import latexToJs from './latexToJs';
 import latexToGlsl from './latexToGlsl';
 import 'katex/dist/katex.min.css';
-import katex from 'katex';
 import { FaReply } from 'react-icons/fa';
 import { FaShare } from 'react-icons/fa';
 import { FaSyncAlt } from 'react-icons/fa';
@@ -60,12 +59,17 @@ export default class HandWritingFormulaArea extends React.Component {
       const exports = e.detail.exports;
       if (exports && exports['application/x-latex']) {
         const cleanedLatex = this.cleanLatex(exports['application/x-latex']);
+        const editorValue = this.props.state.editorValue;
+        const splitText = editorValue
+          .split(`/*${this.props.num}*/`)[0]
+          .split('{');
+        console.log(cleanedLatex);
         convertElement.disabled = false;
         this.props.state.updateHandWritingFormulaAreaCode(
           this.props.num,
           this.props.state.activeTextFile.type === 'javascript'
-            ? latexToJs(cleanedLatex)
-            : latexToGlsl(cleanedLatex)
+            ? latexToJs(cleanedLatex, splitText[splitText.length - 1])
+            : latexToGlsl(cleanedLatex, editorValue)
         );
       } else if (exports && exports['application/mathml+xml']) {
         convertElement.disabled = false;

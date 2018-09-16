@@ -7,7 +7,8 @@ export default class HotReloadButton extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      fontColor: '#000'
+      fontColor: '#000',
+      backgroundColor: '#fff'
     };
   }
   handleClick = () => {
@@ -43,19 +44,22 @@ export default class HotReloadButton extends React.Component {
   };
   handleMouseLeave = () => {
     this.setState({
-      fontColor: '#000'
+      fontColor: this.props.state.hotReload ? '#fff' : '#000'
     });
   };
   handleMouseEnter = () => {
     this.setState({
-      fontColor: ' rgb(0, 185, 158)'
+      fontColor: this.props.state.hotReload ? '#000' : 'rgb(0,185,158)'
     });
   };
   render() {
     return (
       <button
         style={{
-          color: this.state.fontColor
+          color: this.state.fontColor,
+          backgroundColor: this.props.state.hotReload
+            ? 'rgb(0,185,158)'
+            : '#fff'
         }}
         onClick={this.handleClick}
         onMouseLeave={this.handleMouseLeave}

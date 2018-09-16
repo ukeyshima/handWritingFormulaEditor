@@ -35,6 +35,8 @@ export default class TextFileButton extends React.Component {
   };
   handleClick = (fileName, e) => {
     if (e.target.id !== 'delete') {
+      const hotReloadFlag = this.props.state.hotReload;
+      this.props.state.updateHotReload(false);
       const undoManager = this.props.state.editor.session.$undoManager;
       let undoStack = undoManager.$undoStack.concat();
       let redoStack = undoManager.$redoStack.concat();
@@ -82,9 +84,12 @@ export default class TextFileButton extends React.Component {
           }
         });
       }, 1);
+      this.props.state.updateHotReload(hotReloadFlag);
     }
   };
   handleDeleteClick = fileName => {
+    const hotReloadFlag = this.props.state.hotReload;
+    this.props.state.updateHotReload(false);
     const textFile = this.props.state.textFile;
     const activeFile =
       this.props.state.activeTextFile.fileName === fileName
@@ -109,6 +114,11 @@ export default class TextFileButton extends React.Component {
       this.props.state.editor.session.$undoManager.$undoStack = undoStack;
       this.props.state.editor.session.$undoManager.$redoStack = redoStack;
     }, 1);
+    if (hotReloadFlag) {
+      this.props.state.updateHotReload(hotReloadFlag);
+      const textFIle = this.props.state.textFile;
+      this.props.state.executeHTML(textFIle);
+    }
   };
 
   render() {

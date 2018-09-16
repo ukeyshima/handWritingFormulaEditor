@@ -3,6 +3,7 @@ import HotReloadButton from './hotReloadButton.jsx';
 import DemoButton from './demoButton.jsx';
 import DemoButton2 from './demoButton2.jsx';
 import DemoButton3 from './demoButton3.jsx';
+import DemoButton4 from './demoButton4.jsx';
 import { inject, observer } from 'mobx-react';
 
 @inject('state')
@@ -23,6 +24,7 @@ export default class ModeSelect extends React.Component {
         <DemoButton />
         <DemoButton2 />
         <DemoButton3 />
+        <DemoButton4 />
       </div>
     );
   }

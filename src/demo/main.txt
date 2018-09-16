@@ -17,8 +17,7 @@ const create_shader = (text, type) => {
   gl.compileShader(shader);
   if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     return shader;
-  } else {
-    alert(gl.getShaderInfoLog(shader));
+  } else { 
     console.log(gl.getShaderInfoLog(shader));
   }
 };

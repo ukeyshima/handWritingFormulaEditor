@@ -14,34 +14,41 @@ export default class CreateHandWritingFormulaArea extends React.Component {
     };
   }
   handleClick = () => {
-    const editor = this.props.state.editor;
-    const selection = editor.getSelectionRange();
-    const startRange = selection.start;
-    const startPosition = editor.renderer.textToScreenCoordinates(startRange);
-    const id = this.props.state.handWritingFormulaAreaId;
-    this.props.state.incrementHandWritingFormulaAreaId();
-    let word = `/*${id}*/`;
-    for (let i = 0; i < 31 - word.length; i++) {
-      word += '\x20';
+    if (
+      this.props.state.activeTextFile.type === 'javascript' ||
+      this.props.state.activeTextFile.type === 'glsl'
+    ) {
+      const editor = this.props.state.editor;
+      const selection = editor.getSelectionRange();
+      const startRange = selection.start;
+      const startPosition = editor.renderer.textToScreenCoordinates(startRange);
+      const id = this.props.state.handWritingFormulaAreaId;
+      this.props.state.incrementHandWritingFormulaAreaId();
+      let word = `/*${id}*/`;
+      for (let i = 0; i < 31 - word.length; i++) {
+        word += '\x20';
+      }
+      for (let i = 0; i < 8; i++) {
+        word += '\n';
+      }
+      for (let i = 0; i < startRange.column + 31; i++) {
+        word += '\x20';
+      }
+      editor.insert(word);
+      console.log(startRange.row);
+      this.props.state.pushHandWritingFormulaAreas({
+        startRow: startRange.row,
+        width: 500,
+        height: 320,
+        x: startPosition.pageX,
+        y: startPosition.pageY,
+        visible: true,
+        code: '',
+        exchange: false,
+        codeEditor: null,
+        handwritingFormulaEditor: null
+      });
     }
-    for (let i = 0; i < 8; i++) {
-      word += '\n';
-    }
-    for (let i = 0; i < startRange.column + 31; i++) {
-      word += '\x20';
-    }
-    editor.insert(word);
-    this.props.state.pushHandWritingFormulaAreas({
-      width: 500,
-      height: 320,
-      x: startPosition.pageX,
-      y: startPosition.pageY,
-      visible: true,
-      code: '',
-      exchange: false,
-      codeEditor: null,
-      handwritingFormulaEditor: null
-    });
   };
   handleMouseEnter = () => {
     this.setState({

@@ -5,14 +5,14 @@ varying vec3 vNormal;
 void main(void){
     vec3 color=vec3(1.0,0.0,1.0);    
     vec3 ambientColor=vec3(0.1);
-    vec3 lightPosition=vec3(50.0,100.0,10.0);
-    vec3 eyeDirection=vec3(0.0,0.0,1.0);
+    vec3 lightPosition=vec3(0.0,10.0,-70.0);
+    vec3 eyeDirection=vec3(0.0,2.0,1.0);
     vec3  lightVec  = lightPosition - vPosition;
     vec3  invLight  = normalize(invMatrix * vec4(lightVec, 0.0)).xyz;
     vec3  invEye    = normalize(invMatrix * vec4(eyeDirection, 0.0)).xyz;
     vec3  halfLE    = normalize(invLight + invEye);
-    float diffuse   = clamp(dot(vNormal, invLight), 0.0, 1.0) + 0.2;
-    float specular  = pow(clamp(dot(vNormal, halfLE), 0.0, 1.0), 30.0);
-    color = color * vec3(diffuse) + vec3(specular) + ambientColor;    
+    float diffuse   = clamp(dot(vNormal, invLight), 0.1, 1.0) + 0.1;
+    float specular  = pow(clamp(dot(vNormal, halfLE), 0.1, 1.0), 30.0);
+    color = color * vec3(diffuse) + vec3(specular) + ambientColor;
     gl_FragColor=vec4(color,1.0);
 }

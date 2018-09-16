@@ -11,10 +11,15 @@ export default class HandWritingExchange extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      code: this.props.code
+      code: this.props.code,
+      mode: 'javascript'
     };
   }
   componentDidMount() {
+    const mode = this.props.state.activeTextFile.type;
+    this.setState({
+      mode: mode
+    });
     const editor = this.refs.aceEditor.editor;
     this.props.state.updateHandWritingFormulaAreaCodeEditor(
       this.props.num,
@@ -37,7 +42,7 @@ export default class HandWritingExchange extends React.Component {
           }}
           onChange={this.handleChange}
           ref="aceEditor"
-          mode="javascript"
+          mode={this.state.mode}
           theme="dawn"
           value={this.state.code}
           fontSize={27}

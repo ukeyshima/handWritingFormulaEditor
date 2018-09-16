@@ -81,14 +81,6 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
         column: this.state.prevEndRangeColumn
       };
       const currentEndRange = editor.renderer.screenToTextCoordinates(x, y);
-
-      console.log('---prev');
-      console.log(this.state.x, this.state.y);
-      console.log(prevEndRange.row, prevEndRange.column);
-      console.log('---current');
-      console.log(x, y);
-      console.log(currentEndRange.row, currentEndRange.column);
-
       let insertText = `/*${this.props.num}*/`;
       for (let i = 0; i < currentEndRange.row - startRange.row; i++) {
         insertText += '\n';
@@ -183,6 +175,7 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
         />
         <HandWritingFormulaArea
           num={this.props.num}
+          startrow={this.props.startrow}
           style={{
             position: 'absolute',
             width: Math.floor(this.props.status.width - 3),

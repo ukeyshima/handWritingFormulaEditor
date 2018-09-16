@@ -40,6 +40,7 @@ export default class RenderingObject extends React.Component {
                 left: e.x,
                 visibility: e.visible ? 'visible' : 'hidden'
               }}
+              startrow={e.startRow}
               status={e}
               num={i}
               key={i}

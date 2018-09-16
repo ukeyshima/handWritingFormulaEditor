@@ -66,6 +66,10 @@ export default class Editor extends React.Component {
           position.pageY
         );
         this.props.state.updateHandWritingFormulaAreaVisible(i, true);
+        this.props.state.updateHandWritingFormulaAreaStartRow(
+          i,
+          range[0].start.row
+        );
       } else {
         this.props.state.updateHandWritingFormulaAreaVisible(i, false);
       }
@@ -81,7 +85,6 @@ export default class Editor extends React.Component {
       const searchWord = `/*${i}*/`;
       this.editor.$search.setOptions({ needle: searchWord, regExp: false });
       const range = this.editor.$search.findAll(this.editor.session);
-      console.log(range);
       if (range.length > 0) {
         const position = this.editor.renderer.textToScreenCoordinates(
           range[0].start

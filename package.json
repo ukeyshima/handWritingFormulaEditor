@@ -27,12 +27,14 @@
     "webpack-dev-server": "^2.11.2"
   },
   "dependencies": {
+    "acorn": "^6.0.1",
     "asciimath-to-latex": "^0.3.2",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
     "babel-polyfill": "^6.26.0",
     "babel-preset-stage-0": "^6.24.1",
     "glsl-loader": "0.0.1",
+    "glsl-man": "^1.1.14",
     "json-loader": "^0.5.7",
     "katex": "^0.10.0-rc.1",
     "mathjs": "^5.1.1",
@@ -51,6 +53,7 @@
     "react-icons": "^3.0.5",
     "react-router": "^4.2.0",
     "react-router-dom": "^4.2.2",
-    "sass-loader": "^7.0.1"
+    "sass-loader": "^7.0.1",
+    "v5": "^0.1.2"
   }
 }
