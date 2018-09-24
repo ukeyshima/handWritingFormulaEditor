@@ -35,7 +35,6 @@ export default class CreateHandWritingFormulaArea extends React.Component {
         word += '\x20';
       }
       editor.insert(word);
-      console.log(startRange.row);
       this.props.state.pushHandWritingFormulaAreas({
         startRow: startRange.row,
         width: 500,

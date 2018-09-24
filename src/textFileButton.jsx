@@ -84,7 +84,11 @@ export default class TextFileButton extends React.Component {
           }
         });
       }, 1);
-      this.props.state.updateHotReload(hotReloadFlag);
+      if (hotReloadFlag) {
+        this.props.state.updateHotReload(hotReloadFlag);
+        const textFIle = this.props.state.textFile;
+        this.props.state.executeHTML(textFIle);
+      }
     }
   };
   handleDeleteClick = fileName => {

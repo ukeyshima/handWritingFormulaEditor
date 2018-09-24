@@ -25,6 +25,8 @@ export default class DemoButton extends React.Component {
     this.props.state.updateEditorValue('');
   };
   handleClick = () => {
+    const hotReloadFlag = this.props.state.hotReload;
+    this.props.state.updateHotReload(false);
     this.props.state.clearTextFile();
     this.undoStackReset();
     this.props.state.pushTextFile({
@@ -51,6 +53,11 @@ export default class DemoButton extends React.Component {
       text: css
     });
     this.props.state.incrementId();
+    if (hotReloadFlag) {
+      this.props.state.updateHotReload(hotReloadFlag);
+      const textFIle = this.props.state.textFile;
+      this.props.state.executeHTML(textFIle);
+    }
   };
   handleMouseLeave = () => {
     this.setState({

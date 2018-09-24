@@ -58,19 +58,54 @@ export default class HandWritingFormulaArea extends React.Component {
       if (this.state.autoConvert) this.editor.convert();
       const exports = e.detail.exports;
       if (exports && exports['application/x-latex']) {
+        convertElement.disabled = false;
         const cleanedLatex = this.cleanLatex(exports['application/x-latex']);
         const editorValue = this.props.state.editorValue;
-        const splitText = editorValue
-          .split(`/*${this.props.num}*/`)[0]
-          .split('{');
-        console.log(cleanedLatex);
-        convertElement.disabled = false;
-        this.props.state.updateHandWritingFormulaAreaCode(
-          this.props.num,
-          this.props.state.activeTextFile.type === 'javascript'
-            ? latexToJs(cleanedLatex, splitText[splitText.length - 1])
-            : latexToGlsl(cleanedLatex, editorValue)
-        );
+        const splitText = editorValue.split(`/*${this.props.num}*/`)[0];
+        const jsSplit = splitText.split('{');
+        let jsCode = jsSplit[jsSplit.length - 1];
+        const areas = this.props.state.handWritingFormulaAreas;
+        for (let i = 0; i < areas.length; i++) {
+          jsCode = jsCode.replace(`/*${i}*/`, areas[i].code);
+        }
+        if (this.props.state.activeTextFile.type === 'javascript') {
+          console.log(cleanedLatex);
+          this.props.state.updateHandWritingFormulaAreaCode(
+            this.props.num,
+            latexToJs(cleanedLatex, jsCode)
+          );
+        } else {
+          let glslCode = (() => {
+            if (splitText.match(/void main(void)/)) {
+              return `${splitText}}`;
+            } else if (splitText.split('}').length < jsSplit.length) {
+              const func = splitText.match(
+                /(float|vec\d|mat\d) [a-zA-Z\d]+\(.*\)\{/g
+              );
+              const splitfuncText = splitText.split(func[func.length - 1]);
+              return `${splitfuncText[0]}
+                void main(void){
+                  ${func[func.length - 1]
+                    .match(/\(.*\)/)[0]
+                    .replace('(', '')
+                    .replace(')', '')
+                    .replace(/\,/g, ';')};
+                  ${splitfuncText[1]}
+                }`;
+            } else {
+              return `${splitText}
+                void main(void){}`;
+            }
+          })();
+          const areas = this.props.state.handWritingFormulaAreas;
+          for (let i = 0; i < areas.length; i++) {
+            glslCode = glslCode.replace(`/*${i}*/`, areas[i].code);
+          }
+          this.props.state.updateHandWritingFormulaAreaCode(
+            this.props.num,
+            latexToGlsl(cleanedLatex, glslCode)
+          );
+        }
       } else if (exports && exports['application/mathml+xml']) {
         convertElement.disabled = false;
       } else if (exports && exports['application/mathofficeXML']) {
@@ -161,6 +196,12 @@ export default class HandWritingFormulaArea extends React.Component {
           id="autoConvertButton"
           ref="autoConvert"
           onClick={this.handleAutoConvert}
+          style={{
+            backgroundColor: this.state.autoConvert
+              ? '#fff'
+              : 'rgb(0, 185, 158)',
+            color: this.state.autoConvert ? 'rgb(0,185,158)' : '#fff'
+          }}
         >
           <FaPlayCircle />
         </button>

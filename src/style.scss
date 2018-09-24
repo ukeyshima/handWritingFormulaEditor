@@ -178,7 +178,7 @@ $resultHeight: 20vh;
   z-index: 24;
 }
 
-$buttonWidth: 40px;
+$buttonWidth: 30px;
 
 #handWritingFormulaArea {
   border: #000 1px solid;
@@ -194,25 +194,28 @@ $buttonWidth: 40px;
   height: $buttonHeight;
   font-size: 20px;
   position: absolute;
-  padding: 5px;
+  padding: 4px;
   z-index: 21;
   bottom: 3px;
+  border-radius: 50%;
+  border-color: #00b99e;
+  outline: none;
 }
 #clearButton {
   padding: 0;
-  right: calc(#{$buttonWidth} * 5 + 1px);
+  right: calc(#{$buttonWidth} * 5 + 51px);
 }
 #undoButton {
-  right: calc(#{$buttonWidth} * 4 + 1px);
+  right: calc(#{$buttonWidth} * 4 + 41px);
 }
 #redoButton {
-  right: calc(#{$buttonWidth} * 3 + 1px);
+  right: calc(#{$buttonWidth} * 3 + 31px);
 }
 #convertButton {
-  right: calc(#{$buttonWidth} * 2 + 1px);
+  right: calc(#{$buttonWidth} * 2 + 21px);
 }
 #autoConvertButton {
-  right: calc(#{$buttonWidth} * 1 + 1px);
+  right: calc(#{$buttonWidth} * 1 + 11px);
 }
 #exchangeButton {
   right: calc(#{$buttonWidth} * 0 + 3px);
