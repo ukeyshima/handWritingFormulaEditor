@@ -43,7 +43,8 @@ module.exports = {
       {
         test: /\.(ttf|woff2?)$/,
         loader: 'file-loader'
-      }, {
+      },
+      {
         test: /\.(txt)$/,
         loader: 'raw-loader'
       }

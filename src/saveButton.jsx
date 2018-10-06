@@ -1,6 +1,6 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-
+import { toJS } from 'mobx';
 @inject('state')
 @observer
 export default class SaveButton extends React.Component {
@@ -10,7 +10,7 @@ export default class SaveButton extends React.Component {
       fontColor: '#000'
     };
   }
-  download = data => {
+  download = (data, type) => {
     const e = document.createEvent('MouseEvents');
     e.initMouseEvent(
       'click',
@@ -31,7 +31,11 @@ export default class SaveButton extends React.Component {
     );
     const a = document.createElement('a');
     a.textContent = 'save';
-    a.download = this.props.state.activeTextFile.fileName;
+    a.download =
+      type === 'application/json'
+        ? 'handWritingFormula.json'
+        : this.props.state.activeTextFile.fileName;
+    data = type === 'application/json' ? JSON.stringify(data) : data;
     a.href = window.URL.createObjectURL(
       new Blob([data], { type: 'text/plain' })
     );
@@ -67,7 +71,13 @@ export default class SaveButton extends React.Component {
         data = document_obj.documentElement.outerHTML;
       }
     }
-    this.download(data);
+    this.download(data, 'text/plain');
+    let data2 = toJS(this.props.state.handWritingFormulaAreas);
+    console.log(data2[0].model);
+    data2.forEach(e => {
+      e.handWritingFormulaEditor = null;
+    });
+    this.download(data2, 'application/json');
   };
   handleMouseLeave = () => {
     this.setState({

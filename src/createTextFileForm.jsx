@@ -60,7 +60,11 @@ export default class CreateTextFileForm extends React.Component {
         type: type,
         fileName: this.state.inputValue + '.' + this.state.extensionName,
         removed: false,
-        text: ''
+        text: '',
+        undoStack: null,
+        redoStack: null,
+        handWritingFormulaAreaId: 0,
+        handWritingFormulaAreas: []
       });
       setTimeout(() => {
         this.props.state.editor.session.$undoManager.reset();

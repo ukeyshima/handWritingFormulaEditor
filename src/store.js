@@ -1,6 +1,29 @@
-import { observable, computed, action } from 'mobx';
+import { observable, action } from 'mobx';
 
 class State {
+  @observable
+  keyArray = [
+    {
+      applicationKey: '331b4bdf-7ace-4265-94f1-b01504c78743',
+      hmacKey: '44f4f4ce-fd0f-48a1-b517-65d2b9465413'
+    },
+    {
+      applicationKey: '143af891-408e-43a9-9b2e-e43bc6c26793',
+      hmacKey: '8992f8b6-0f74-4dd6-a578-c7ae4ca76302'
+    }
+  ];
+  @observable
+  key = {
+    applicationKey: '331b4bdf-7ace-4265-94f1-b01504c78743',
+    hmacKey: '44f4f4ce-fd0f-48a1-b517-65d2b9465413'
+  };
+  @observable
+  keyNum = 0;
+  @action.bound
+  keyChange() {
+    this.keyNum++;
+    this.key = this.keyArray[this.keyNum % this.keyArray.length];
+  }
   @observable
   tabChangeEvent = false;
   @action.bound
@@ -58,7 +81,9 @@ class State {
       removed: false,
       text: '',
       undoStack: null,
-      redoStack: null
+      redoStack: null,
+      handWritingFormulaAreaId: 0,
+      handWritingFormulaAreas: []
     }
   ];
   @action.bound
@@ -127,49 +152,58 @@ class State {
   updateRunButtonColor(obj) {
     this.runButtonColor = obj;
   }
-  @observable
-  handWritingFormulaAreas = [];
   @action.bound
   pushHandWritingFormulaAreas(obj) {
-    this.handWritingFormulaAreas.push(obj);
+    this.activeTextFile.handWritingFormulaAreas.push(obj);
   }
   @action.bound
   updateHandWritingFormulaAreaAnchor(num, x, y) {
-    this.handWritingFormulaAreas[num].x = x;
-    this.handWritingFormulaAreas[num].y = y;
+    this.activeTextFile.handWritingFormulaAreas[num].x = x;
+    this.activeTextFile.handWritingFormulaAreas[num].y = y;
   }
   @action.bound
   updateHandWritingFormulaAreaSize(num, width, height) {
-    this.handWritingFormulaAreas[num].width = width;
-    this.handWritingFormulaAreas[num].height = height;
+    this.activeTextFile.handWritingFormulaAreas[num].width = width;
+    this.activeTextFile.handWritingFormulaAreas[num].height = height;
   }
   @action.bound
   updateHandWritingFormulaAreaVisible(num, bool) {
-    this.handWritingFormulaAreas[num].visible = bool;
+    this.activeTextFile.handWritingFormulaAreas[num].visible = bool;
   }
   @action.bound
   updateHandWritingFormulaAreaExchange(num, bool) {
-    this.handWritingFormulaAreas[num].exchange = bool;
+    this.activeTextFile.handWritingFormulaAreas[num].exchange = bool;
   }
   @action.bound
   updateHandWritingFormulaAreaCodeEditor(num, editor) {
-    this.handWritingFormulaAreas[num].codeEditor = editor;
+    this.activeTextFile.handWritingFormulaAreas[num].codeEditor = editor;
   }
   updateHandWritingFormulaAreaHandWritingFormulaEditor(num, editor) {
-    this.handWritingFormulaAreas[num].handWritingFormulaEditor = editor;
+    this.activeTextFile.handWritingFormulaAreas[
+      num
+    ].handWritingFormulaEditor = editor;
   }
   @action.bound
   updateHandWritingFormulaAreaCode(num, code) {
-    this.handWritingFormulaAreas[num].code = code;
+    this.activeTextFile.handWritingFormulaAreas[num].code = code;
   }
-  updateHandWritingFormulaAreaStartRow(num, row) {
-    this.handWritingFormulaAreas[num].startRow = row;
+  // updateHandWritingFormulaAreaStartRow(num, row) {
+  //   this.activeTextFile.handWritingFormulaAreas[num].startRow = row;
+  // }
+  updateHandWritingFormulaAreaCounter(num, count) {
+    this.activeTextFile.handWritingFormulaAreas[num].glslResultCounter = count;
   }
-  @observable
-  handWritingFormulaAreaId = 0;
+  @action.bound
+  updateHandWritingFormulaAreaResultVariable(num, vari) {
+    this.activeTextFile.handWritingFormulaAreas[num].resultVariable = vari;
+  }
+  @action.bound
+  updateHandWritingFormulaAreaModel(num, model) {
+    this.activeTextFile.handWritingFormulaAreas[num].model = model;
+  }
   @action.bound
   incrementHandWritingFormulaAreaId() {
-    this.handWritingFormulaAreaId++;
+    this.activeTextFile.handWritingFormulaAreaId++;
   }
 }
 

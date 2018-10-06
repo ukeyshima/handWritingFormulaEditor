@@ -2,6 +2,7 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import * as MyScriptJS from 'myscript';
+import MyScript from 'myscript/dist/myscript.esm.js';
 import 'myscript/dist/myscript.min.css';
 import latexToJs from './latexToJs';
 import latexToGlsl from './latexToGlsl';
@@ -29,8 +30,8 @@ export default class HandWritingFormulaArea extends React.Component {
         server: {
           scheme: 'https',
           host: 'webdemoapi.myscript.com',
-          applicationKey: '331b4bdf-7ace-4265-94f1-b01504c78743',
-          hmacKey: '44f4f4ce-fd0f-48a1-b517-65d2b9465413'
+          applicationKey: this.props.state.key.applicationKey,
+          hmacKey: this.props.state.key.hmacKey
         },
         v4: {
           math: {
@@ -48,23 +49,50 @@ export default class HandWritingFormulaArea extends React.Component {
         }
       }
     });
+    if (Object.keys(this.props.model).length > 0) {
+      const pointerEventsObject = {
+        events: this.props.model.rawStrokes.slice().map(e => {
+          const e2 = Object.assign({}, e);
+          delete e2.l;
+          delete e2.type;
+          delete e2.width;
+          delete e2.color;
+          delete e2['-myscript-pen-width'];
+          delete e2['-myscript-pen-fill-style'];
+          delete e2['-myscript-pen-fill-color'];
+          return e2;
+        })
+      };
+      this.editor.pointerEvents(pointerEventsObject);
+      for (let e in this.editor.model) {
+        this.editor.model[e] = this.props.model[e];
+      }
+    }
     this.props.state.updateHandWritingFormulaAreaHandWritingFormulaEditor(
       this.props.num,
       this.editor
     );
+    this.refs.editor.addEventListener('error', e => {
+      console.log(e);
+    });
     const convertElement = this.refs.convert;
-    this.editor.export_('image/png');
+    this.editor.export_();
     this.refs.editor.addEventListener('exported', e => {
       if (this.state.autoConvert) this.editor.convert();
       const exports = e.detail.exports;
       if (exports && exports['application/x-latex']) {
         convertElement.disabled = false;
+        console.log(this.editor.model);
+        this.props.state.updateHandWritingFormulaAreaModel(
+          this.props.num,
+          this.editor.model
+        );
         const cleanedLatex = this.cleanLatex(exports['application/x-latex']);
         const editorValue = this.props.state.editorValue;
         const splitText = editorValue.split(`/*${this.props.num}*/`)[0];
         const jsSplit = splitText.split('{');
         let jsCode = jsSplit[jsSplit.length - 1];
-        const areas = this.props.state.handWritingFormulaAreas;
+        const areas = this.props.state.activeTextFile.handWritingFormulaAreas;
         for (let i = 0; i < areas.length; i++) {
           jsCode = jsCode.replace(`/*${i}*/`, areas[i].code);
         }
@@ -101,9 +129,28 @@ export default class HandWritingFormulaArea extends React.Component {
           for (let i = 0; i < areas.length; i++) {
             glslCode = glslCode.replace(`/*${i}*/`, areas[i].code);
           }
+          const resultCounter =
+            areas.length > 1 ? areas[this.props.num - 1].glslResultCounter : 0;
+          const latex2glsl = latexToGlsl(cleanedLatex, glslCode, resultCounter);
+          this.props.state.updateHandWritingFormulaAreaCounter(
+            this.props.num,
+            latex2glsl.count
+          );
+          if (resultCounter !== latex2glsl.count) {
+            this.props.state.updateHandWritingFormulaAreaResultVariable(
+              this.props.num,
+              latex2glsl.variable
+            );
+          } else {
+            this.props.state.updateHandWritingFormulaAreaResultVariable(
+              this.props.num,
+              ''
+            );
+          }
+          console.log(latex2glsl.code);
           this.props.state.updateHandWritingFormulaAreaCode(
             this.props.num,
-            latexToGlsl(cleanedLatex, glslCode)
+            latex2glsl.code
           );
         }
       } else if (exports && exports['application/mathml+xml']) {
@@ -134,6 +181,18 @@ export default class HandWritingFormulaArea extends React.Component {
       .replace('\\widehat', '\\hat')
       .replace(new RegExp('(align.{1})', 'g'), 'aligned');
   };
+  handleDelete = () => {
+    const editor = this.props.state.editor;
+    const searchWord = this.props.state.editorValue.match(
+      new RegExp(`/\\*${this.props.num}\\*/[\\n\\s]*`)
+    )[0];
+    editor.$search.setOptions({
+      needle: searchWord,
+      regExp: false
+    });
+    const range = editor.$search.findAll(editor.session)[0];
+    editor.session.replace(range, '');
+  };
   handleConvert = () => {
     this.editor.convert();
   };
@@ -159,6 +218,21 @@ export default class HandWritingFormulaArea extends React.Component {
         ref="handWritingFormulaArea"
         id="handWritingFormulaArea"
       >
+        <div id="resultVariableView">
+          {
+            this.props.state.activeTextFile.handWritingFormulaAreas[
+              this.props.num
+            ].resultVariable
+          }
+        </div>
+        <button
+          className="handWritingFormulaAreaButton"
+          id="deleteButton"
+          ref="delete"
+          onClick={this.handleDelete}
+        >
+          D
+        </button>
         <button
           className="handWritingFormulaAreaButton"
           id="clearButton"

@@ -63,9 +63,7 @@ export default class AddButton extends React.Component {
         </button>
         {(() => {
           if (this.state.click) {
-            return (
-              <CreateTextFileForm x={this.state.clickX} y={this.state.clickY} />
-            );
+            return <CreateTextFileForm x={this.state.clickX} y={0} />;
           }
         })()}
       </React.Fragment>

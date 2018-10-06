@@ -167,6 +167,7 @@ dot = (input1, input2) => {
   input1.forEach((e, i) => {
     result += `+${e}*${input2[i]}`;
   });
+  result = result.slice(1, result.length);
   return `(${result})`;
 };
 
@@ -205,8 +206,6 @@ matrixMultiplication = (array, input) => {
 };
 
 matrixOperations = (array, input, operations) => {
-  console.log(array);
-  console.log(input);
   const o = [];
   array.forEach((e, j) => {
     const q = [];
@@ -215,7 +214,6 @@ matrixOperations = (array, input, operations) => {
     });
     o.push(q);
   });
-  console.log(o);
   return o;
 };
 
@@ -232,6 +230,31 @@ matrixShape = (array, input) => {
             input.slice(1, input.length)
           )
         : matrixMultiplication(array, input[0][0]);
+  } else if (array.hasOwnProperty('type')) {
+    switch (array.type) {
+      case 'op':
+        switch (array.name) {
+          case '\\sin':            
+            result = `Math.sin(${matrixShape(
+              matrix(input[0].body[0]),
+              input[0].body.slice(1, input[0].body.length)
+            )})${nextMulti(input, 1)}`;
+            break;
+          case '\\cos':
+            result = `Math.cos(${matrixShape(
+              matrix(input[0].body[0]),
+              input[0].body.slice(1, input[0].body.length)
+            )})${nextMulti(input, 1)}`;
+            break;
+          case '\\tan':
+            result = `Math.tan(${matrixShape(
+              matrix(input[0].body[0]),
+              input[0].body.slice(1, input[0].body.length)
+            )})${nextMulti(input, 1)}`;
+            break;
+        }
+        break;
+    }
   } else {
     switch (input[0].type) {
       case 'leftright':
@@ -314,6 +337,9 @@ matrixShape = (array, input) => {
           input.length > 1
             ? matrixShape(inverse(input[0].base), input.slice(1, input.length))
             : inverse(input[0].base);
+        break;
+      default:
+        break;
     }
   }
   return result;
@@ -479,14 +505,16 @@ shape = input => {
           }
         }
         return input1;
-      })();
+      })();      
       result = (() => {
         if (input[0].hasOwnProperty('type')) {
-          input[0] = matrix(input[0]);
+          if (input[0].type === 'op') {
+          } else {
+            input[0] = matrix(input[0]);
+          }
         } else {
           input[0] = input[0][0];
         }
-
         return Array.isArray(
           matrixShape(input[0], input.slice(1, input.length))
         )

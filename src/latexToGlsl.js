@@ -1,10 +1,11 @@
-const katex = require('katex');
-const mathjs = require('mathjs');
-const mathIntegral = require('mathjs-simple-integral');
-const atl = require('asciimath-to-latex');
-const glsl = require('glsl-man');
+import katex from 'katex';
+import mathjs from 'mathjs';
+import mathIntegral from 'mathjs-simple-integral';
+import atl from 'asciimath-to-latex';
+import * as glsl from 'glsl-man';
 
 let code = ``;
+let returnVariable = '';
 
 const canvas = document.createElement('canvas');
 const gl = canvas.getContext('webgl');
@@ -240,6 +241,9 @@ radix = input => {
                   })();
             const indexResult = `result${resultCounter}`;
             resultCounter++;
+            returnVariable = `${typeDetermination(
+              `pow(${result},1.0/${indexResult})`
+            )} result${resultCounter}`;
             return `${expression}
     ${indexExpression}
     ${typeDetermination(
@@ -259,6 +263,9 @@ radix = input => {
           const expression = sum(input.body.body);
           const result = `result${resultCounter}`;
           resultCounter++;
+          returnVariable = `${typeDetermination(
+            `sqrt(${result})`
+          )} result${resultCounter}`;
           return `${expression}
   ${typeDetermination(
     `sqrt(${result})`
@@ -302,6 +309,9 @@ frac = input => {
             })();
       const denomResult = `result${resultCounter}`;
       resultCounter++;
+      returnVariable = `${typeDetermination(
+        `${numerResult}/${denomResult}`
+      )} result${resultCounter}`;
       return `${numerExpression}
   ${denomExpression}
   ${typeDetermination(
@@ -376,6 +386,7 @@ sum = input => {
     input[0].sub.body.slice(index + 1, input[0].sub.body.length)
   );
   const end = shape(input[0].sup.body);
+  returnVariable = `${typeDetermination(expression)} result${resultCounter}`;
   return `${typeDetermination(
     expression
   )} result${resultCounter} = ${typeDetermination(expression)}(0.0);
@@ -754,12 +765,16 @@ shape = input => {
   return result;
 };
 
-export default (latex2glsl = (input, program) => {
+export default (latex2glsl = (input, program, count) => {
   code = program;
-  resultCounter = 0;
+  resultCounter = count;
   while (input.search(/\n/) >= 0) {
     input = input.replace(/\n/g, ' ');
   }
   const parseTree = katex.__parse(input);
-  return int2dec(shape(parseTree));
+  return {
+    code: int2dec(shape(parseTree)),
+    variable: returnVariable,
+    count: resultCounter
+  };
 });

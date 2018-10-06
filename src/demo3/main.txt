@@ -188,7 +188,7 @@ window.addEventListener("load",()=>{
   const startTime = new Date().getTime();
   const render = () => {
     gl.clear(gl.COLOR_BUFFER_BIT);
-    const time = (new Date().getTime() - startTime) * 0.001;
+    const t = (new Date().getTime() - startTime) * 0.001;
     let mMatrix = [
       1, 0, 0, 0, 
       0, 1, 0, 0,
@@ -197,20 +197,20 @@ window.addEventListener("load",()=>{
       ];
     const rotateXMatrix = [
       1, 0, 0, 0,
-      0, Math.cos(time), Math.sin(time), 0,
-      0, -Math.sin(time), Math.cos(time), 0,
+      0, Math.cos(t), Math.sin(t), 0,
+      0, -Math.sin(t), Math.cos(t), 0,
       0, 0, 0, 1
     ];
     const rotateYMatrix = [
-      Math.cos(time), 0, -Math.sin(time), 0,
+      Math.cos(t), 0, -Math.sin(t), 0,
       0, 1, 0, 0,
-      Math.sin(time), 0, Math.cos(time), 0,
+      Math.sin(t), 0, Math.cos(t), 0,
       0, 0, 0, 1
     ];
     mMatrix = matrix44MultiPly(mMatrix, rotateXMatrix);
     mMatrix = matrix44MultiPly(mMatrix, rotateYMatrix);
     const iMatrix = inverse(mMatrix);
-    gl.uniform1f(uniLocation[0], time);
+    gl.uniform1f(uniLocation[0], t);
     gl.uniform2fv(uniLocation[1], [canvas.width, canvas.height]);
     gl.uniformMatrix4fv(uniLocation[2], false, mMatrix);
     gl.uniformMatrix4fv(uniLocation[3], false, mMatrix);

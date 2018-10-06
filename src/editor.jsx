@@ -29,7 +29,6 @@ export default class Editor extends React.Component {
     const editor = this.refs.aceEditor.editor;
     this.editor = editor;
     editor.resize();
-    editor.session.setUseWrapMode(true);
     this.props.state.updateEditor(editor);
     const AceUndoManager = editor.session.$undoManager;
     AceUndoManager.reset();
@@ -52,7 +51,7 @@ export default class Editor extends React.Component {
   }
   handleChange = e => {
     this.props.state.updateEditorValue(e);
-    this.props.state.handWritingFormulaAreas.forEach((e, i) => {
+    this.props.state.activeTextFile.handWritingFormulaAreas.forEach((e, i) => {
       const searchWord = `/*${i}*/`;
       this.editor.$search.setOptions({ needle: searchWord, regExp: false });
       const range = this.editor.$search.findAll(this.editor.session);
@@ -66,10 +65,10 @@ export default class Editor extends React.Component {
           position.pageY
         );
         this.props.state.updateHandWritingFormulaAreaVisible(i, true);
-        this.props.state.updateHandWritingFormulaAreaStartRow(
-          i,
-          range[0].start.row
-        );
+        // this.props.state.updateHandWritingFormulaAreaStartRow(
+        //   i,
+        //   range[0].start.row
+        // );
       } else {
         this.props.state.updateHandWritingFormulaAreaVisible(i, false);
       }
@@ -80,8 +79,8 @@ export default class Editor extends React.Component {
     }
   };
 
-  handleScroll = () => {
-    this.props.state.handWritingFormulaAreas.forEach((e, i) => {
+  handleScroll = e => {
+    this.props.state.activeTextFile.handWritingFormulaAreas.forEach((e, i) => {
       const searchWord = `/*${i}*/`;
       this.editor.$search.setOptions({ needle: searchWord, regExp: false });
       const range = this.editor.$search.findAll(this.editor.session);
@@ -91,7 +90,7 @@ export default class Editor extends React.Component {
         );
         this.props.state.updateHandWritingFormulaAreaAnchor(
           i,
-          this.props.state.handWritingFormulaAreas[i].x,
+          position.pageX,
           position.pageY
         );
         this.props.state.updateHandWritingFormulaAreaVisible(i, true);
@@ -105,6 +104,8 @@ export default class Editor extends React.Component {
     return (
       <AceEditor
         style={{
+          position: 'absolute',
+          top: 110,
           width: this.state.width,
           height: this.state.height
         }}
@@ -117,6 +118,18 @@ export default class Editor extends React.Component {
         fontSize={27}
         editorProps={{
           $blockScrolling: Infinity
+        }}
+        wrapEnabled={false}
+        tabSize={4}
+        setOptions={{
+          enableBasicAutocompletion: true,
+          enableLiveAutocompletion: true,
+          hScrollBarAlwaysVisible: true,
+          vScrollBarAlwaysVisible: true,
+          animatedScroll: true,
+          scrollSpeed: 0.7,
+          spellcheck: true,
+          enableEmmet: true
         }}
       />
     );

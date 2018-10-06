@@ -1,5 +1,7 @@
 import React from 'react';
 import HotReloadButton from './hotReloadButton.jsx';
+import APIKeyShift from './apiKeyShift.jsx';
+import ErrorDelete from './errorDelete.jsx';
 import DemoButton from './demoButton.jsx';
 import DemoButton2 from './demoButton2.jsx';
 import DemoButton3 from './demoButton3.jsx';
@@ -21,6 +23,8 @@ export default class ModeSelect extends React.Component {
         }}
       >
         <HotReloadButton />
+        <APIKeyShift />
+        <ErrorDelete />
         <DemoButton />
         <DemoButton2 />
         <DemoButton3 />

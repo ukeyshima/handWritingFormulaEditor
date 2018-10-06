@@ -9,6 +9,7 @@ $headerHeight: 30px;
 $buttonHeight: 30px;
 
 #header {
+  position: absolute;
   background-color: #eee;
   height: $headerHeight;
   width: 100vw;
@@ -23,20 +24,24 @@ $buttonHeight: 30px;
     outline: 0;
     position: absolute;
   }
-  z-index: 24;
+  z-index: 25;
 }
 #file {
   left: 0;
-  z-index: 24;
+  z-index: 22;
 }
 #mode {
   left: 100px;
-  z-index: 24;
+  z-index: 22;
 }
 
 $topHeight: 50px;
 
 #runAndStop {
+  background-color: #ddd;
+  position: absolute;
+  top: $headerHeight;
+  width: 100%;
   height: $topHeight;
   button {
     width: $topHeight;
@@ -55,6 +60,8 @@ $topHeight: 50px;
 $tabHeight: 30px;
 
 #tab {
+  position: absolute;
+  top: $headerHeight + $topHeight;
   width: 100vw;
   height: $tabHeight;
   background-color: #ccc;
@@ -87,7 +94,7 @@ $tabHeight: 30px;
   border-radius: 10px;
   color: #444;
   position: absolute;
-  z-index: 5;
+  z-index: 25;
   text-align: center;
   box-shadow: 2px 2px 10px gray;
   button {
@@ -201,6 +208,10 @@ $buttonWidth: 30px;
   border-color: #00b99e;
   outline: none;
 }
+#deleteButton {
+  padding: 0;
+  right: calc(#{$buttonWidth} * 6 + 61px);
+}
 #clearButton {
   padding: 0;
   right: calc(#{$buttonWidth} * 5 + 51px);
@@ -225,4 +236,15 @@ $buttonWidth: 30px;
 .marker {
   background-color: #f00;
   position: absolute;
+}
+#resultVariableView {
+  position: absolute;
+  z-index: 21;
+  bottom: 5px;
+  left: 5px;
+  border: solid 1px;
+  padding: 1px 4px;
+  color: #fff;
+  background-color: rgb(0, 185, 158);
+  font-family: 'arial';
 }

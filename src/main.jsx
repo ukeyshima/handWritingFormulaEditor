@@ -8,7 +8,6 @@ import Header from './header.jsx';
 import Tab from './tab.jsx';
 import { Provider, inject, observer } from 'mobx-react';
 import State from './store.js';
-import DevTools from 'mobx-react-devtools';
 
 const stores = {
   state: new State()

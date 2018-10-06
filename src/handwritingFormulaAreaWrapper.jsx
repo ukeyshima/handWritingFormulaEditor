@@ -15,9 +15,13 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
       prevEndRangeColumn: 0
     };
   }
+  handleMouseDownOrTouchStart = () => {
+    this.props.state.editor.blur();
+  };
   handleExchange = () => {
-    const bool = this.props.state.handWritingFormulaAreas[this.props.num]
-      .exchange;
+    const bool = this.props.state.activeTextFile.handWritingFormulaAreas[
+      this.props.num
+    ].exchange;
     this.props.state.updateHandWritingFormulaAreaExchange(
       this.props.num,
       !bool
@@ -43,18 +47,18 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
     this.startY = e.hasOwnProperty('changedTouches')
       ? e.changedTouches[0].pageY
       : e.pageY;
-    this.startWidth = this.props.state.handWritingFormulaAreas[
+    this.startWidth = this.props.state.activeTextFile.handWritingFormulaAreas[
       this.props.num
     ].width;
-    this.startHeight = this.props.state.handWritingFormulaAreas[
+    this.startHeight = this.props.state.activeTextFile.handWritingFormulaAreas[
       this.props.num
     ].height;
+
     const editor = this.props.state.editor;
-    const prevEndRange = editor.renderer.screenToTextCoordinates(
+    const prevEndRange = editor.renderer.pixelToScreenCoordinates(
       this.startX,
       this.startY
     );
-    console.log(prevEndRange);
     this.setState({
       prevEndRangeRow: prevEndRange.row,
       prevEndRangeColumn: prevEndRange.column
@@ -80,18 +84,30 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
         row: this.state.prevEndRangeRow,
         column: this.state.prevEndRangeColumn
       };
-      const currentEndRange = editor.renderer.screenToTextCoordinates(x, y);
+      const currentEndRange = editor.renderer.pixelToScreenCoordinates(x, y);
       let insertText = `/*${this.props.num}*/`;
-      for (let i = 0; i < currentEndRange.row - startRange.row; i++) {
-        insertText += '\n';
-      }
-      for (let i = 0; i < currentEndRange.column; i++) {
+      const num =
+        currentEndRange.column - startRange.column - insertText.length;
+      for (let i = 0; i < num; i++) {
         insertText += '\x20';
       }
+      for (let i = 0; i < currentEndRange.row - startRange.row; i++) {
+        insertText += '\n';
+        for (let i = 0; i < currentEndRange.column; i++) {
+          insertText += '\x20';
+        }
+      }
+
       editor.session.replace(
         {
-          start: startRange,
-          end: prevEndRange
+          start: {
+            row: startRange.row,
+            column: startRange.column
+          },
+          end: {
+            row: prevEndRange.row,
+            column: prevEndRange.column
+          }
         },
         insertText
       );
@@ -105,14 +121,6 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
         this.startWidth + x - this.startX,
         this.startHeight + y - this.startY
       );
-      this.props.state.handWritingFormulaAreas[
-        this.props.num
-      ].handWritingFormulaEditor.resize();
-      if (this.props.state.handWritingFormulaAreas[this.props.num].exchange) {
-        this.props.state.handWritingFormulaAreas[
-          this.props.num
-        ].codeEditor.resize();
-      }
     }
   };
   handleMouseAndTouchUpResize = () => {
@@ -132,10 +140,25 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
       'touchend',
       this.handleMouseAndTouchUpResize
     );
+    this.props.state.activeTextFile.handWritingFormulaAreas[
+      this.props.num
+    ].handWritingFormulaEditor.resize();
+    if (
+      this.props.state.activeTextFile.handWritingFormulaAreas[this.props.num]
+        .exchange
+    ) {
+      this.props.state.activeTextFile.handWritingFormulaAreas[
+        this.props.num
+      ].codeEditor.resize();
+    }
   };
   render() {
     return (
-      <div style={this.props.style}>
+      <div
+        style={this.props.style}
+        onMouseDown={this.handleMouseDownOrTouchStart}
+        onTouchStart={this.handleMouseDownOrTouchStart}
+      >
         <button
           className="handWritingFormulaAreaButton"
           id="exchangeButton"
@@ -144,9 +167,10 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
           <FaExchangeAlt />
         </button>
         <div
+          touch-action="none"
           style={{
             backgroundColor: '#888',
-            width: 3,
+            width: 7,
             height: 30,
             margin: 0,
             padding: 0,
@@ -157,12 +181,14 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
             zIndex: 23
           }}
           onMouseDown={this.handleMouseAndTouchDownResize}
+          onTouchStart={this.handleMouseAndTouchDownResize}
         />
         <div
+          touch-action="none"
           style={{
             backgroundColor: '#888',
             width: 30,
-            height: 3,
+            height: 7,
             margin: 0,
             padding: 0,
             position: 'absolute',
@@ -172,8 +198,10 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
             zIndex: 23
           }}
           onMouseDown={this.handleMouseAndTouchDownResize}
+          onTouchStart={this.handleMouseAndTouchDownResize}
         />
         <HandWritingFormulaArea
+          model={this.props.model}
           num={this.props.num}
           startrow={this.props.startrow}
           style={{

@@ -108,6 +108,7 @@ export default class RunArea extends React.Component {
   render() {
     return (
       <div
+        touch-action="none"
         onMouseDown={this.handleMouseAndTouchDown}
         onTouchStart={this.handleMouseAndTouchDown}
         style={{

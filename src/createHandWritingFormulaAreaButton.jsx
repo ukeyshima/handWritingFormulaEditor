@@ -8,6 +8,8 @@ import { FaPencilAlt } from 'react-icons/fa';
 export default class CreateHandWritingFormulaArea extends React.Component {
   constructor(props) {
     super(props);
+    this.width = 500;
+    this.height = 320;
     this.state = {
       backgroundColor: '#eee',
       fontColor: ' rgb(0, 185, 158)'
@@ -22,30 +24,40 @@ export default class CreateHandWritingFormulaArea extends React.Component {
       const selection = editor.getSelectionRange();
       const startRange = selection.start;
       const startPosition = editor.renderer.textToScreenCoordinates(startRange);
-      const id = this.props.state.handWritingFormulaAreaId;
+      const id = this.props.state.activeTextFile.handWritingFormulaAreaId;
       this.props.state.incrementHandWritingFormulaAreaId();
+      const endTextCoordinate = editor.renderer.pixelToScreenCoordinates(
+        startPosition.pageX + this.width,
+        startPosition.pageY + this.height
+      );
+      const textCoordinateWidth = endTextCoordinate.column - startRange.column;
+      const textCoordinateHeight = endTextCoordinate.row - startRange.row;
       let word = `/*${id}*/`;
-      for (let i = 0; i < 31 - word.length; i++) {
+      const num = textCoordinateWidth - word.length;
+      for (let i = 0; i < num; i++) {
         word += '\x20';
       }
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < textCoordinateHeight; i++) {
         word += '\n';
-      }
-      for (let i = 0; i < startRange.column + 31; i++) {
-        word += '\x20';
+        for (let i = 0; i < startRange.column + textCoordinateWidth; i++) {
+          word += '\x20';
+        }
       }
       editor.insert(word);
       this.props.state.pushHandWritingFormulaAreas({
-        startRow: startRange.row,
-        width: 500,
-        height: 320,
+        // startRow: startRange.row,
+        width: this.width,
+        height: this.height,
         x: startPosition.pageX,
         y: startPosition.pageY,
         visible: true,
         code: '',
         exchange: false,
         codeEditor: null,
-        handwritingFormulaEditor: null
+        handWritingFormulaEditor: null,
+        glslResultCounter: 0,
+        resultVariable: '',
+        model: {}
       });
     }
   };

@@ -3,6 +3,7 @@ import Editor from './editor.jsx';
 import RunArea from './runArea.jsx';
 import HandWritingFormulaAreaWrapper from './handwritingFormulaAreaWrapper.jsx';
 import { inject, observer } from 'mobx-react';
+import { toJS } from 'mobx';
 
 @inject('state')
 @observer
@@ -10,7 +11,7 @@ export default class RenderingObject extends React.Component {
   render() {
     return (
       <React.Fragment>
-        <Editor />
+        <Editor ref="editor" />
         {(() => {
           if (this.props.state.runAreaRenderingFlag) {
             return (
@@ -19,33 +20,35 @@ export default class RenderingObject extends React.Component {
                   position: 'absolute',
                   left: this.props.state.runAreaPosition.x,
                   top: this.props.state.runAreaPosition.y,
-                  width: 500,
-                  height: 500,
+                  width: 400,
+                  height: 400,
                   borderRadius: 5,
                   boxShadow: '2px 2px 10px grey',
-                  zIndex: 24
+                  zIndex: 26
                 }}
               />
             );
           }
         })()}
-        {this.props.state.handWritingFormulaAreas.map((e, i) => {
-          return (
-            <HandWritingFormulaAreaWrapper
-              style={{
-                position: 'absolute',
-                width: Math.floor(e.width),
-                height: Math.floor(e.height),
-                top: e.y,
-                left: e.x,
-                visibility: e.visible ? 'visible' : 'hidden'
-              }}
-              startrow={e.startRow}
-              status={e}
-              num={i}
-              key={i}
-            />
-          );
+        {this.props.state.activeTextFile.handWritingFormulaAreas.map((e, i) => {
+          if (e.visible) {
+            return (
+              <HandWritingFormulaAreaWrapper
+                style={{
+                  position: 'absolute',
+                  width: Math.floor(e.width),
+                  height: Math.floor(e.height),
+                  top: e.y,
+                  left: e.x
+                }}
+                model={toJS(e.model)}
+                startrow={e.startRow}
+                status={e}
+                num={i}
+                key={i}
+              />
+            );
+          }
         })}
       </React.Fragment>
     );

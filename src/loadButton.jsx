@@ -15,7 +15,15 @@ export default class LoadButton extends React.Component {
     const reader = new FileReader();
     reader.readAsText(file[0]);
     reader.onload = () => {
-      this.props.state.editor.setValue(reader.result);
+      if (file[0].type === 'application/json') {
+        const json = JSON.parse(reader.result);
+        json.forEach(e => {
+          console.log(e.model);
+          this.props.state.pushHandWritingFormulaAreas(e);
+        });
+      } else {
+        this.props.state.editor.setValue(reader.result);
+      }
     };
     delete this.inputFile;
   };
