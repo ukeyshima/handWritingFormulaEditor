@@ -157,6 +157,10 @@ class State {
     this.activeTextFile.handWritingFormulaAreas.push(obj);
   }
   @action.bound
+  updateHandWritingFormulaAreas(obj) {
+    this.activeTextFile.handWritingFormulaAreas = obj;
+  }
+  @action.bound
   updateHandWritingFormulaAreaAnchor(num, x, y) {
     this.activeTextFile.handWritingFormulaAreas[num].x = x;
     this.activeTextFile.handWritingFormulaAreas[num].y = y;
@@ -187,9 +191,6 @@ class State {
   updateHandWritingFormulaAreaCode(num, code) {
     this.activeTextFile.handWritingFormulaAreas[num].code = code;
   }
-  // updateHandWritingFormulaAreaStartRow(num, row) {
-  //   this.activeTextFile.handWritingFormulaAreas[num].startRow = row;
-  // }
   updateHandWritingFormulaAreaCounter(num, count) {
     this.activeTextFile.handWritingFormulaAreas[num].glslResultCounter = count;
   }
@@ -200,6 +201,14 @@ class State {
   @action.bound
   updateHandWritingFormulaAreaModel(num, model) {
     this.activeTextFile.handWritingFormulaAreas[num].model = model;
+  }
+  @action.bound
+  updateHandWritingFormulaAreaResizeEvent(num, bool) {
+    this.activeTextFile.handWritingFormulaAreas[num].resizeEvent = bool;
+  }
+  @action.bound
+  updateHandWritingFormulaAreaId(num) {
+    this.activeTextFile.handWritingFormulaAreaId = num;
   }
   @action.bound
   incrementHandWritingFormulaAreaId() {

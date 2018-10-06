@@ -31,8 +31,8 @@ export default class RenderingObject extends React.Component {
           }
         })()}
         {this.props.state.activeTextFile.handWritingFormulaAreas.map((e, i) => {
-          if (e.visible) {
-            return (
+          return (
+            e.visible && (
               <HandWritingFormulaAreaWrapper
                 style={{
                   position: 'absolute',
@@ -47,8 +47,8 @@ export default class RenderingObject extends React.Component {
                 num={i}
                 key={i}
               />
-            );
-          }
+            )
+          );
         })}
       </React.Fragment>
     );

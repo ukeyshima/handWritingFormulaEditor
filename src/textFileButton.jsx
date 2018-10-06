@@ -60,29 +60,31 @@ export default class TextFileButton extends React.Component {
         this.props.state.editor.session.$undoManager.reset();
         this.props.state.editor.session.$undoManager.$undoStack = undoStack;
         this.props.state.editor.session.$undoManager.$redoStack = redoStack;
-        this.props.state.handWritingFormulaAreas.forEach((e, i) => {
-          const searchWord = `/*${i}*/`;
-          this.props.state.editor.$search.setOptions({
-            needle: searchWord,
-            regExp: false
-          });
-          const range = this.props.state.editor.$search.findAll(
-            this.props.state.editor.session
-          );
-          if (range.length > 0) {
-            const position = this.props.state.editor.renderer.textToScreenCoordinates(
-              range[0].start
+        this.props.state.activeTextFile.handWritingFormulaAreas.forEach(
+          (e, i) => {
+            const searchWord = `/*${i}*/`;
+            this.props.state.editor.$search.setOptions({
+              needle: searchWord,
+              regExp: false
+            });
+            const range = this.props.state.editor.$search.findAll(
+              this.props.state.editor.session
             );
-            this.props.state.updateHandWritingFormulaAreaAnchor(
-              i,
-              this.props.state.handWritingFormulaAreas[i].x,
-              position.pageY
-            );
-            this.props.state.updateHandWritingFormulaAreaVisible(i, true);
-          } else {
-            this.props.state.updateHandWritingFormulaAreaVisible(i, false);
+            if (range.length > 0) {
+              const position = this.props.state.editor.renderer.textToScreenCoordinates(
+                range[0].start
+              );
+              this.props.state.updateHandWritingFormulaAreaAnchor(
+                i,
+                this.props.state.activeTextFile.handWritingFormulaAreas[i].x,
+                position.pageY
+              );
+              this.props.state.updateHandWritingFormulaAreaVisible(i, true);
+            } else {
+              this.props.state.updateHandWritingFormulaAreaVisible(i, false);
+            }
           }
-        });
+        );
       }, 1);
       if (hotReloadFlag) {
         this.props.state.updateHotReload(hotReloadFlag);

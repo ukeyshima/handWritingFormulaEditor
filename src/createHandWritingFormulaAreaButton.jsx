@@ -45,7 +45,6 @@ export default class CreateHandWritingFormulaArea extends React.Component {
       }
       editor.insert(word);
       this.props.state.pushHandWritingFormulaAreas({
-        // startRow: startRange.row,
         width: this.width,
         height: this.height,
         x: startPosition.pageX,
@@ -57,7 +56,8 @@ export default class CreateHandWritingFormulaArea extends React.Component {
         handWritingFormulaEditor: null,
         glslResultCounter: 0,
         resultVariable: '',
-        model: {}
+        model: {},
+        resizeEvent: false
       });
     }
   };

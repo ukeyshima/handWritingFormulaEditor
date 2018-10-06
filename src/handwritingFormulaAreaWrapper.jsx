@@ -28,6 +28,10 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
     );
   };
   handleMouseAndTouchDownResize = e => {
+    this.props.state.updateHandWritingFormulaAreaResizeEvent(
+      this.props.num,
+      true
+    );
     document.body.addEventListener(
       'mousemove',
       this.handleMouseAndTouchMoveResize
@@ -97,7 +101,6 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
           insertText += '\x20';
         }
       }
-
       editor.session.replace(
         {
           start: {
@@ -151,6 +154,10 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
         this.props.num
       ].codeEditor.resize();
     }
+    this.props.state.updateHandWritingFormulaAreaResizeEvent(
+      this.props.num,
+      false
+    );
   };
   render() {
     return (

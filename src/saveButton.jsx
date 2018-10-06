@@ -72,8 +72,7 @@ export default class SaveButton extends React.Component {
       }
     }
     this.download(data, 'text/plain');
-    let data2 = toJS(this.props.state.handWritingFormulaAreas);
-    console.log(data2[0].model);
+    let data2 = toJS(this.props.state.activeTextFile.handWritingFormulaAreas);
     data2.forEach(e => {
       e.handWritingFormulaEditor = null;
     });

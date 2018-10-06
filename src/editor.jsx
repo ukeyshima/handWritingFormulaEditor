@@ -65,12 +65,14 @@ export default class Editor extends React.Component {
           position.pageY
         );
         this.props.state.updateHandWritingFormulaAreaVisible(i, true);
-        // this.props.state.updateHandWritingFormulaAreaStartRow(
-        //   i,
-        //   range[0].start.row
-        // );
       } else {
-        this.props.state.updateHandWritingFormulaAreaVisible(i, false);
+        if (
+          this.props.state.activeTextFile.handWritingFormulaAreas[i].resizeEvent
+        ) {
+          this.props.state.updateHandWritingFormulaAreaVisible(i, true);
+        } else {
+          this.props.state.updateHandWritingFormulaAreaVisible(i, false);
+        }
       }
     });
     if (this.props.state.hotReload) {
@@ -122,14 +124,10 @@ export default class Editor extends React.Component {
         wrapEnabled={false}
         tabSize={4}
         setOptions={{
-          enableBasicAutocompletion: true,
-          enableLiveAutocompletion: true,
           hScrollBarAlwaysVisible: true,
           vScrollBarAlwaysVisible: true,
           animatedScroll: true,
-          scrollSpeed: 0.7,
-          spellcheck: true,
-          enableEmmet: true
+          scrollSpeed: 0.7
         }}
       />
     );

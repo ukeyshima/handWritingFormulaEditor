@@ -16,11 +16,10 @@ export default class LoadButton extends React.Component {
     reader.readAsText(file[0]);
     reader.onload = () => {
       if (file[0].type === 'application/json') {
+        this.props.state.updateHandWritingFormulaAreas([]);
         const json = JSON.parse(reader.result);
-        json.forEach(e => {
-          console.log(e.model);
-          this.props.state.pushHandWritingFormulaAreas(e);
-        });
+        this.props.state.updateHandWritingFormulaAreas(json);
+        this.props.state.updateHandWritingFormulaAreaId(json.length);
       } else {
         this.props.state.editor.setValue(reader.result);
       }
