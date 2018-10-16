@@ -1,14 +1,12 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-import fs from './demo4/fragmentShader.txt';
-import vs from './demo4/vertexShader.txt';
-import js from './demo4/main.txt';
-import css from './demo4/style.txt';
-import html from './demo4/index.txt';
+import css from './experiment/style.txt';
+import html from './experiment/index.txt';
+import js from './experiment/main.txt';
 
 @inject('state')
 @observer
-export default class DemoButton extends React.Component {
+export default class ExperimentButton extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -45,18 +43,6 @@ export default class DemoButton extends React.Component {
     this.undoStackReset();
     this.props.state.pushTextFile({
       id: 1,
-      type: 'javascript',
-      fileName: 'main.js',
-      removed: false,
-      text: js,
-      undoStack: null,
-      redoStack: null,
-      handWritingFormulaAreaId: 0,
-      handWritingFormulaAreas: []
-    });
-    this.undoStackReset();
-    this.props.state.pushTextFile({
-      id: 2,
       type: 'css',
       fileName: 'main.css',
       removed: false,
@@ -68,23 +54,11 @@ export default class DemoButton extends React.Component {
     });
     this.undoStackReset();
     this.props.state.pushTextFile({
-      id: 3,
-      type: 'glsl',
-      fileName: 'fragmentShader.glsl',
+      id: 2,
+      type: 'javascript',
+      fileName: 'main.js',
       removed: false,
-      text: fs,
-      undoStack: null,
-      redoStack: null,
-      handWritingFormulaAreaId: 0,
-      handWritingFormulaAreas: []
-    });
-    this.undoStackReset();
-    this.props.state.pushTextFile({
-      id: 4,
-      type: 'glsl',
-      fileName: 'vertexShader.glsl',
-      removed: false,
-      text: vs,
+      text: js,
       undoStack: null,
       redoStack: null,
       handWritingFormulaAreaId: 0,
@@ -117,7 +91,7 @@ export default class DemoButton extends React.Component {
         onMouseLeave={this.handleMouseLeave}
         onMouseEnter={this.handleMouseEnter}
       >
-        demo4
+        experiment
       </button>
     );
   }

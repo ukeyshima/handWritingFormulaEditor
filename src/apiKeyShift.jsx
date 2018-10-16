@@ -12,7 +12,6 @@ export default class apiKeyShift extends React.Component {
   }
   handleClick = () => {
     this.props.state.keyChange();
-    console.log(this.props.state.key.applicationKey);
   };
   handleMouseLeave = () => {
     this.setState({

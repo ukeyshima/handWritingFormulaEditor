@@ -37,12 +37,13 @@ export default class RunArea extends React.Component {
           const targetOfJs = textFile.find(f => {
             return f.fileName === fileName;
           });
-          const id = this.props.state.handWritingFormulaAreaId;
-          const areas = this.props.state.handWritingFormulaAreas;
+          const id = targetOfJs.handWritingFormulaAreaId;
+          const areas = targetOfJs.handWritingFormulaAreas;
           let resultText = targetOfJs.text;
           for (let i = 0; i < id; i++) {
             resultText = resultText.replace(`/*${i}*/`, areas[i].code);
           }
+          console.log(resultText);
           const blob = new Blob([resultText], {
             type: 'application/javascript'
           });
@@ -51,8 +52,8 @@ export default class RunArea extends React.Component {
           const targetOfNotJs = textFile.find(f => {
             return f.fileName === e.type;
           });
-          const id = this.props.state.handWritingFormulaAreaId;
-          const areas = this.props.state.handWritingFormulaAreas;
+          const id = targetOfNotJs.handWritingFormulaAreaId;
+          const areas = targetOfNotJs.handWritingFormulaAreas;
           let resultText = targetOfNotJs.text;
           for (let i = 0; i < id; i++) {
             resultText = resultText.replace(`/*${i}*/`, areas[i].code);

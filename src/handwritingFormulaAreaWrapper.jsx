@@ -5,7 +5,16 @@ import { FaExchangeAlt } from 'react-icons/fa';
 import HandWritingFormulaArea from './handWritingFormulaArea.jsx';
 import HandWritingExchange from './handWritingExchange.jsx';
 
-@inject('state')
+@inject(({ state }, props) => ({
+  editor: state.editor,
+  handWritingFormulaArea:
+    state.activeTextFile.handWritingFormulaAreas[props.num],
+  updateHandWritingFormulaAreaExchange:
+    state.updateHandWritingFormulaAreaExchange,
+  updateHandWritingFormulaAreaResizeEvent:
+    state.updateHandWritingFormulaAreaResizeEvent,
+  updateHandWritingFormulaAreaSize: state.updateHandWritingFormulaAreaSize
+}))
 @observer
 export default class HandWritingFormulaAreaWrapper extends React.Component {
   constructor(props) {
@@ -14,24 +23,27 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
       prevEndRangeRow: 0,
       prevEndRangeColumn: 0
     };
+    this.shouldUpdate = false;
+  }
+  componentWillReceiveProps(nextProps) {
+    if (this.props.style.visibility !== nextProps.style.visibility) {
+      this.shouldUpdate = true;
+    } else {
+      this.shouldUpdate = false;
+    }
+  }
+  shouldComponentUpdate() {
+    return this.props.handWritingFormulaArea.visible || this.shouldUpdate;
   }
   handleMouseDownOrTouchStart = () => {
-    this.props.state.editor.blur();
+    this.props.editor.blur();
   };
   handleExchange = () => {
-    const bool = this.props.state.activeTextFile.handWritingFormulaAreas[
-      this.props.num
-    ].exchange;
-    this.props.state.updateHandWritingFormulaAreaExchange(
-      this.props.num,
-      !bool
-    );
+    const bool = this.props.handWritingFormulaArea.exchange;
+    this.props.updateHandWritingFormulaAreaExchange(this.props.num, !bool);
   };
   handleMouseAndTouchDownResize = e => {
-    this.props.state.updateHandWritingFormulaAreaResizeEvent(
-      this.props.num,
-      true
-    );
+    this.props.updateHandWritingFormulaAreaResizeEvent(this.props.num, true);
     document.body.addEventListener(
       'mousemove',
       this.handleMouseAndTouchMoveResize
@@ -45,20 +57,20 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
       'touchend',
       this.handleMouseAndTouchUpResize
     );
-    this.startX = e.hasOwnProperty('changedTouches')
-      ? e.changedTouches[0].pageX
-      : e.pageX;
-    this.startY = e.hasOwnProperty('changedTouches')
-      ? e.changedTouches[0].pageY
-      : e.pageY;
-    this.startWidth = this.props.state.activeTextFile.handWritingFormulaAreas[
-      this.props.num
-    ].width;
-    this.startHeight = this.props.state.activeTextFile.handWritingFormulaAreas[
-      this.props.num
-    ].height;
+    this.startX = e.pageX
+      ? e.pageX
+      : e.touches
+        ? e.touches[0].pageX
+        : e.changedTouches[0].pageX;
+    this.startY = e.pageY
+      ? e.pageY
+      : e.touches
+        ? e.touches[0].pageY
+        : e.changedTouches[0].pageY;
+    this.startWidth = this.props.handWritingFormulaArea.width;
+    this.startHeight = this.props.handWritingFormulaArea.height;
 
-    const editor = this.props.state.editor;
+    const editor = this.props.editor;
     const prevEndRange = editor.renderer.pixelToScreenCoordinates(
       this.startX,
       this.startY
@@ -69,64 +81,90 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
     });
   };
   handleMouseAndTouchMoveResize = e => {
-    const x = e.hasOwnProperty('changedTouches')
-      ? e.changedTouches[0].pageX
-      : e.pageX;
-    const y = e.hasOwnProperty('changedTouches')
-      ? e.changedTouches[0].pageY
-      : e.pageY;
-
+    const x = e.pageX
+      ? e.pageX
+      : e.touches
+        ? e.touches[0].pageX
+        : e.changedTouches[0].pageX;
+    const y = e.pageY
+      ? e.pageY
+      : e.touches
+        ? e.touches[0].pageY
+        : e.changedTouches[0].pageY;
     if (
       this.startWidth + x - this.startX > 250 &&
-      this.startHeight + y - this.startY > 100
+      this.startHeight + y - this.startY > 150
     ) {
-      const editor = this.props.state.editor;
-      const searchWord = `/*${this.props.num}*/`;
-      editor.$search.setOptions({ needle: searchWord, regExp: false });
-      const startRange = editor.$search.findAll(editor.session)[0].start;
-      const prevEndRange = {
-        row: this.state.prevEndRangeRow,
-        column: this.state.prevEndRangeColumn
-      };
-      const currentEndRange = editor.renderer.pixelToScreenCoordinates(x, y);
-      let insertText = `/*${this.props.num}*/`;
-      const num =
-        currentEndRange.column - startRange.column - insertText.length;
-      for (let i = 0; i < num; i++) {
-        insertText += '\x20';
-      }
-      for (let i = 0; i < currentEndRange.row - startRange.row; i++) {
-        insertText += '\n';
-        for (let i = 0; i < currentEndRange.column; i++) {
-          insertText += '\x20';
-        }
-      }
-      editor.session.replace(
-        {
-          start: {
-            row: startRange.row,
-            column: startRange.column
-          },
-          end: {
-            row: prevEndRange.row,
-            column: prevEndRange.column
-          }
-        },
-        insertText
-      );
-      this.setState({
-        prevEndRangeRow: currentEndRange.row,
-        prevEndRangeColumn: currentEndRange.column
-      });
-
-      this.props.state.updateHandWritingFormulaAreaSize(
+      this.props.updateHandWritingFormulaAreaSize(
         this.props.num,
         this.startWidth + x - this.startX,
         this.startHeight + y - this.startY
       );
     }
   };
-  handleMouseAndTouchUpResize = () => {
+  handleMouseAndTouchUpResize = e => {
+    const x = e.pageX
+      ? e.pageX
+      : e.touches
+        ? e.touches[0].pageX
+        : e.changedTouches[0].pageX;
+    const y = e.pageY
+      ? e.pageY
+      : e.touches
+        ? e.touches[0].pageY
+        : e.changedTouches[0].pageY;
+    const editor = this.props.editor;
+    const searchWord = `/*${this.props.num}*/`;
+    editor.$search.setOptions({ needle: searchWord, regExp: false });
+    const startRange = editor.$search.findAll(editor.session)[0].start;
+    const prevEndRange = {
+      row: this.state.prevEndRangeRow,
+      column: this.state.prevEndRangeColumn
+    };
+    const currentEndRange = editor.renderer.pixelToScreenCoordinates(x, y);
+    let insertText = `/*${this.props.num}*/`;
+    const num = currentEndRange.column - startRange.column - insertText.length;
+    for (let i = 0; i < num; i++) {
+      insertText += '\x20';
+    }
+    for (let i = 0; i < currentEndRange.row - startRange.row; i++) {
+      insertText += '\n';
+      for (let i = 0; i < currentEndRange.column; i++) {
+        insertText += '\x20';
+      }
+    }
+    const text = editor.session.getTextRange({
+      start: {
+        row: startRange.row,
+        column: startRange.column
+      },
+      end: {
+        row: prevEndRange.row,
+        column: prevEndRange.column
+      }
+    });
+    let minusText = '';
+    for (let i = searchWord.length; i < text.length; i++) {
+      let character = text[i];
+      if (character !== '\x20' && character !== '\n') {
+        minusText = text.slice(i, text.length);
+      }
+    }
+
+    editor.session.replace(
+      {
+        start: {
+          row: startRange.row,
+          column: startRange.column
+        },
+        end: {
+          row: prevEndRange.row,
+          column: prevEndRange.column - minusText.length
+        }
+      },
+      insertText
+    );
+
     document.body.removeEventListener(
       'mousemove',
       this.handleMouseAndTouchMoveResize
@@ -143,21 +181,11 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
       'touchend',
       this.handleMouseAndTouchUpResize
     );
-    this.props.state.activeTextFile.handWritingFormulaAreas[
-      this.props.num
-    ].handWritingFormulaEditor.resize();
-    if (
-      this.props.state.activeTextFile.handWritingFormulaAreas[this.props.num]
-        .exchange
-    ) {
-      this.props.state.activeTextFile.handWritingFormulaAreas[
-        this.props.num
-      ].codeEditor.resize();
+    this.props.handWritingFormulaArea.handWritingFormulaEditor.resize();
+    if (this.props.handWritingFormulaArea.exchange) {
+      this.props.handWritingFormulaArea.codeEditor.resize();
     }
-    this.props.state.updateHandWritingFormulaAreaResizeEvent(
-      this.props.num,
-      false
-    );
+    this.props.updateHandWritingFormulaAreaResizeEvent(this.props.num, false);
   };
   render() {
     return (
@@ -208,9 +236,8 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
           onTouchStart={this.handleMouseAndTouchDownResize}
         />
         <HandWritingFormulaArea
-          model={this.props.model}
+          // model={this.props.model}
           num={this.props.num}
-          startrow={this.props.startrow}
           style={{
             position: 'absolute',
             width: Math.floor(this.props.status.width - 3),

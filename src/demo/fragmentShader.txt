@@ -24,13 +24,16 @@ float n(float x,float y){
     return ((dot(a,e)*(1.0-j.x)+dot(b,f)*j.x)*(1.0-j.y)+(dot(c,g)*(1.0-j.x)+dot(d,h)*j.x)*j.y)*0.5+0.5;
 }
 float t(float x,float z){
-float value=0.0;
-float maxValue=0.0;
-for(float i=0.0;i<5.0;i++){
-    value+=pow(0.5,i)*n(x*pow(2.0,i),z*pow(2.0,i));
-    maxValue+=pow(0.5,i);
-}
-return value/maxValue;
+/*0*/                                                   
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        ;
+return result3;
 }
 
 float m(vec3 p){

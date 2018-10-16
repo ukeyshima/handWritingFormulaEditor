@@ -54,17 +54,30 @@ export default class Editor extends React.Component {
     this.props.state.activeTextFile.handWritingFormulaAreas.forEach((e, i) => {
       const searchWord = `/*${i}*/`;
       this.editor.$search.setOptions({ needle: searchWord, regExp: false });
-      const range = this.editor.$search.findAll(this.editor.session);
-      if (range.length > 0) {
+      const range = this.editor.$search.find(this.editor.session);
+      if (range) {
         const position = this.editor.renderer.textToScreenCoordinates(
-          range[0].start
+          range.start
         );
-        this.props.state.updateHandWritingFormulaAreaAnchor(
-          i,
-          position.pageX,
-          position.pageY
-        );
-        this.props.state.updateHandWritingFormulaAreaVisible(i, true);
+        if (
+          position.pageY + e.height > 0 &&
+          position.pageY < window.innerHeight
+        ) {
+          this.props.state.updateHandWritingFormulaAreaAnchor(
+            i,
+            position.pageX,
+            position.pageY
+          );
+          if (
+            !this.props.state.activeTextFile.handWritingFormulaAreas[i].visible
+          )
+            this.props.state.updateHandWritingFormulaAreaVisible(i, true);
+        } else {
+          if (
+            this.props.state.activeTextFile.handWritingFormulaAreas[i].visible
+          )
+            this.props.state.updateHandWritingFormulaAreaVisible(i, false);
+        }
       } else {
         if (
           this.props.state.activeTextFile.handWritingFormulaAreas[i].resizeEvent
@@ -81,21 +94,34 @@ export default class Editor extends React.Component {
     }
   };
 
-  handleScroll = e => {
+  handleScroll = () => {
     this.props.state.activeTextFile.handWritingFormulaAreas.forEach((e, i) => {
       const searchWord = `/*${i}*/`;
       this.editor.$search.setOptions({ needle: searchWord, regExp: false });
-      const range = this.editor.$search.findAll(this.editor.session);
-      if (range.length > 0) {
+      const range = this.editor.$search.find(this.editor.session);
+      if (range) {
         const position = this.editor.renderer.textToScreenCoordinates(
-          range[0].start
+          range.start
         );
-        this.props.state.updateHandWritingFormulaAreaAnchor(
-          i,
-          position.pageX,
-          position.pageY
-        );
-        this.props.state.updateHandWritingFormulaAreaVisible(i, true);
+        if (
+          position.pageY + e.height > 0 &&
+          position.pageY < window.innerHeight
+        ) {
+          this.props.state.updateHandWritingFormulaAreaAnchor(
+            i,
+            position.pageX,
+            position.pageY
+          );
+          if (
+            !this.props.state.activeTextFile.handWritingFormulaAreas[i].visible
+          )
+            this.props.state.updateHandWritingFormulaAreaVisible(i, true);
+        } else {
+          if (
+            this.props.state.activeTextFile.handWritingFormulaAreas[i].visible
+          )
+            this.props.state.updateHandWritingFormulaAreaVisible(i, false);
+        }
       } else {
         this.props.state.updateHandWritingFormulaAreaVisible(i, false);
       }

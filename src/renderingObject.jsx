@@ -11,7 +11,7 @@ export default class RenderingObject extends React.Component {
   render() {
     return (
       <React.Fragment>
-        <Editor ref="editor" />
+        <Editor />
         {(() => {
           if (this.props.state.runAreaRenderingFlag) {
             return (
@@ -31,23 +31,22 @@ export default class RenderingObject extends React.Component {
           }
         })()}
         {this.props.state.activeTextFile.handWritingFormulaAreas.map((e, i) => {
+          console.log(i);
           return (
-            e.visible && (
-              <HandWritingFormulaAreaWrapper
-                style={{
-                  position: 'absolute',
-                  width: Math.floor(e.width),
-                  height: Math.floor(e.height),
-                  top: e.y,
-                  left: e.x
-                }}
-                model={toJS(e.model)}
-                startrow={e.startRow}
-                status={e}
-                num={i}
-                key={i}
-              />
-            )
+            <HandWritingFormulaAreaWrapper
+              style={{
+                position: 'absolute',
+                width: Math.floor(e.width),
+                height: Math.floor(e.height),
+                top: e.y,
+                left: e.x,
+                visibility: e.visible ? 'visible' : 'hidden'
+              }}
+              // model={toJS(e.model)}
+              status={e}
+              num={i}
+              key={i}
+            />
           );
         })}
       </React.Fragment>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import ExtensionSelection from './extensionSelection.jsx';
+import { observable, action } from 'mobx';
 
 @inject('state')
 @observer
@@ -55,17 +56,19 @@ export default class CreateTextFileForm extends React.Component {
         }
         return result;
       })();
-      this.props.state.pushTextFile({
-        id: id,
-        type: type,
-        fileName: this.state.inputValue + '.' + this.state.extensionName,
-        removed: false,
-        text: '',
-        undoStack: null,
-        redoStack: null,
-        handWritingFormulaAreaId: 0,
-        handWritingFormulaAreas: []
-      });
+      this.props.state.pushTextFile(
+        observable({
+          id: id,
+          type: type,
+          fileName: this.state.inputValue + '.' + this.state.extensionName,
+          removed: false,
+          text: '',
+          undoStack: null,
+          redoStack: null,
+          handWritingFormulaAreaId: 0,
+          handWritingFormulaAreas: observable([])
+        })
+      );
       setTimeout(() => {
         this.props.state.editor.session.$undoManager.reset();
       }, 1);

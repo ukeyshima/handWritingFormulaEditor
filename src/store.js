@@ -1,5 +1,4 @@
 import { observable, action } from 'mobx';
-
 class State {
   @observable
   keyArray = [
@@ -86,6 +85,7 @@ class State {
       handWritingFormulaAreas: []
     }
   ];
+
   @action.bound
   pushTextFile(file) {
     if (

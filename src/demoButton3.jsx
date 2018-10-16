@@ -36,7 +36,11 @@ export default class DemoButton extends React.Component {
       type: 'html',
       fileName: 'index.html',
       removed: false,
-      text: html
+      text: html,
+      undoStack: null,
+      redoStack: null,
+      handWritingFormulaAreaId: 0,
+      handWritingFormulaAreas: []
     });
     this.undoStackReset();
     this.props.state.pushTextFile({
@@ -44,7 +48,11 @@ export default class DemoButton extends React.Component {
       type: 'javascript',
       fileName: 'main.js',
       removed: false,
-      text: js
+      text: js,
+      undoStack: null,
+      redoStack: null,
+      handWritingFormulaAreaId: 0,
+      handWritingFormulaAreas: []
     });
     this.undoStackReset();
     this.props.state.pushTextFile({
@@ -52,7 +60,11 @@ export default class DemoButton extends React.Component {
       type: 'css',
       fileName: 'main.css',
       removed: false,
-      text: css
+      text: css,
+      undoStack: null,
+      redoStack: null,
+      handWritingFormulaAreaId: 0,
+      handWritingFormulaAreas: []
     });
     this.undoStackReset();
     this.props.state.pushTextFile({
@@ -60,7 +72,11 @@ export default class DemoButton extends React.Component {
       type: 'glsl',
       fileName: 'fragmentShader.glsl',
       removed: false,
-      text: fs
+      text: fs,
+      undoStack: null,
+      redoStack: null,
+      handWritingFormulaAreaId: 0,
+      handWritingFormulaAreas: []
     });
     this.undoStackReset();
     this.props.state.pushTextFile({
@@ -68,7 +84,11 @@ export default class DemoButton extends React.Component {
       type: 'glsl',
       fileName: 'vertexShader.glsl',
       removed: false,
-      text: vs
+      text: vs,
+      undoStack: null,
+      redoStack: null,
+      handWritingFormulaAreaId: 0,
+      handWritingFormulaAreas: []
     });
     this.props.state.incrementId();
     if (hotReloadFlag) {

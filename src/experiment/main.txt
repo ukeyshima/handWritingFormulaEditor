@@ -1,0 +1,13 @@
+const canvas=document.getElementById("canvas");
+canvas.width=canvas.clientWidth;
+canvas.height=canvas.clientHeight;
+const context=canvas.getContext("2d");
+const w=canvas.width;
+const h=canvas.height;
+
+
+for(let i=0;i<w;i++){
+    for(let j=0;j<h;j++){
+
+   }
+}

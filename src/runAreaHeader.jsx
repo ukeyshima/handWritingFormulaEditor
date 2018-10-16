@@ -3,7 +3,7 @@ import { inject, observer } from 'mobx-react';
 
 @inject('state')
 @observer
-export default class RunArea extends React.Component {
+export default class RunAreaHeader extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
