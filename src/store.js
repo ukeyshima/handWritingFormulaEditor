@@ -1,4 +1,6 @@
-import { observable, action } from 'mobx';
+import { observable, computed, action } from 'mobx';
+import { toJS } from 'mobx';
+
 class State {
   @observable
   keyArray = [
@@ -68,8 +70,8 @@ class State {
   @observable
   iframeElement = null;
   @action.bound
-  updateIframeElement(element) {
-    this.iframeElement = element;
+  async updateIframeElement(element) {
+    this.iframeElement = await element;
   }
   @observable
   textFile = [
@@ -85,7 +87,6 @@ class State {
       handWritingFormulaAreas: []
     }
   ];
-
   @action.bound
   pushTextFile(file) {
     if (
@@ -93,36 +94,45 @@ class State {
         return e.fileName === file.fileName;
       })
     ) {
-      this.editor.setValue(file.text);
       this.textFile.push(file);
-      this.changeActiveTextFile(this.textFile[this.textFile.length - 1]);
+      this.changeActiveTextFile(this.textFile.length - 1);
+      setTimeout(() => {
+        this.editor.session.$undoManager.reset();
+      }, 10);
     }
   }
   @action.bound
-  removeTextFile(file) {
+  async removeTextFile(file) {
     const nextTextFile = this.textFile.filter(e => e !== file);
-    this.textFile = nextTextFile;
+    this.textFile = await nextTextFile;
   }
   @action.bound
-  clearTextFile() {
-    this.textFile = [];
+  async clearTextFile() {
+    this.textFile = await [];
   }
   @observable
   activeTextFile = this.textFile[0];
   @action.bound
-  changeActiveTextFile(file) {
-    this.activeTextFile = file;
+  async changeActiveTextFile(index) {
+    this.activeTextFile = await this.textFile[index];
+  }
+  @computed
+  get activeTextFileId() {
+    return this.textFile.findIndex(e => {
+      return e.fileName === this.activeTextFile.fileName;
+    });
   }
   @action.bound
   updateActiveText(text) {
     this.activeTextFile.text = text;
   }
   @action.bound
-  updateActiveUndoStack(undoStack) {
-    this.activeTextFile.undoStack = undoStack;
+  async updateActiveUndoStack(undoStack) {
+    this.activeTextFile.undoStack = await undoStack;
   }
-  updateActiveRedoStack(redoStack) {
-    this.activeTextFile.redoStack = redoStack;
+  @action.bound
+  async updateActiveRedoStack(redoStack) {
+    this.activeTextFile.redoStack = await redoStack;
   }
   @observable
   id = 0;
@@ -171,8 +181,8 @@ class State {
     this.activeTextFile.handWritingFormulaAreas[num].height = height;
   }
   @action.bound
-  updateHandWritingFormulaAreaVisible(num, bool) {
-    this.activeTextFile.handWritingFormulaAreas[num].visible = bool;
+  updateHandWritingFormulaAreaVisible(textFileNum, num, bool) {
+    this.textFile[textFileNum].handWritingFormulaAreas[num].visible = bool;
   }
   @action.bound
   updateHandWritingFormulaAreaExchange(num, bool) {
@@ -182,6 +192,7 @@ class State {
   updateHandWritingFormulaAreaCodeEditor(num, editor) {
     this.activeTextFile.handWritingFormulaAreas[num].codeEditor = editor;
   }
+  @action.bound
   updateHandWritingFormulaAreaHandWritingFormulaEditor(num, editor) {
     this.activeTextFile.handWritingFormulaAreas[
       num
@@ -191,6 +202,7 @@ class State {
   updateHandWritingFormulaAreaCode(num, code) {
     this.activeTextFile.handWritingFormulaAreas[num].code = code;
   }
+  @action.bound
   updateHandWritingFormulaAreaCounter(num, count) {
     this.activeTextFile.handWritingFormulaAreas[num].glslResultCounter = count;
   }

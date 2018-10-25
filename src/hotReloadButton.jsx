@@ -1,7 +1,14 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 
-@inject('state')
+@inject(({ state }) => ({
+  hotReload: state.hotReload,
+  updateHotReload: state.updateHotReload,
+  iframeElement: state.iframeElement,
+  stopButton: state.stopButton,
+  runButton: state.runButton,
+  updateRunButtonColor: state.updateRunButtonColor
+}))
 @observer
 export default class HotReloadButton extends React.Component {
   constructor(props) {
@@ -12,8 +19,8 @@ export default class HotReloadButton extends React.Component {
     };
   }
   handleClick = () => {
-    const bool = this.props.state.hotReload;
-    this.props.state.updateHotReload(!bool);
+    const bool = this.props.hotReload;
+    this.props.updateHotReload(!bool);
     const e = document.createEvent('MouseEvents');
     e.initMouseEvent(
       'click',
@@ -32,11 +39,11 @@ export default class HotReloadButton extends React.Component {
       0,
       null
     );
-    if (this.props.state.iframeElement) {
-      this.props.state.stopButton.dispatchEvent(e);
+    if (this.props.iframeElement) {
+      this.props.stopButton.dispatchEvent(e);
     } else {
-      this.props.state.runButton.dispatchEvent(e);
-      this.props.state.updateRunButtonColor({
+      this.props.runButton.dispatchEvent(e);
+      this.props.updateRunButtonColor({
         backgroundColor: ' rgb(0, 185, 158)',
         fontColor: '#eee'
       });
@@ -44,22 +51,21 @@ export default class HotReloadButton extends React.Component {
   };
   handleMouseLeave = () => {
     this.setState({
-      fontColor: this.props.state.hotReload ? '#fff' : '#000'
+      fontColor: this.props.hotReload ? '#fff' : '#000'
     });
   };
   handleMouseEnter = () => {
     this.setState({
-      fontColor: this.props.state.hotReload ? '#000' : 'rgb(0,185,158)'
+      fontColor: this.props.hotReload ? '#000' : 'rgb(0,185,158)'
     });
   };
   render() {
     return (
       <button
+        touch-action="auto"
         style={{
           color: this.state.fontColor,
-          backgroundColor: this.props.state.hotReload
-            ? 'rgb(0,185,158)'
-            : '#fff'
+          backgroundColor: this.props.hotReload ? 'rgb(0,185,158)' : '#fff'
         }}
         onClick={this.handleClick}
         onMouseLeave={this.handleMouseLeave}

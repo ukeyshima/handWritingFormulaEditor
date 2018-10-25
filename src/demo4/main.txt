@@ -1,4 +1,4 @@
-const webGLStart = async () => {
+const webGLStart =() => {
   const create_program = (vs, fs) => {
     const program = gl.createProgram();
     gl.attachShader(program, vs);
@@ -120,7 +120,6 @@ const webGLStart = async () => {
   ];
 
   const textureCoord = [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0];
-
   const vPosition = create_vbo(position);
   const vTextureCoord = create_vbo(textureCoord);
   const attLocation = new Array();
@@ -134,19 +133,22 @@ const webGLStart = async () => {
   const vIndex = create_ibo(index);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vIndex);
   gl.activeTexture(gl.TEXTURE0);
-  const texture = await create_texture();
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  const startTime = new Date().getTime();
-  const render = () => {
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.uniform1f(uniLocation[0], (new Date().getTime() - startTime) * 0.001);
-    gl.uniform2fv(uniLocation[1], [canvas.width, canvas.height]);
-    gl.uniform1i(uniLocation[2], 0);
-    gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
-    gl.flush();
-    requestAnimationFrame(render);
-  };
-  render();
+  create_texture().then(
+      texture=>{
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        const startTime = new Date().getTime();
+        const render = () => {
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.uniform1f(uniLocation[0], (new Date().getTime() - startTime) * 0.001);
+            gl.uniform2fv(uniLocation[1], [canvas.width, canvas.height]);
+            gl.uniform1i(uniLocation[2], 0);
+            gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
+            gl.flush();
+            requestAnimationFrame(render);
+        };
+        render();        
+      }
+      );
 };
 webGLStart();

@@ -1,7 +1,6 @@
 //export to "renderingObject.jsx"
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-// import * as MyScriptJS from 'myscript';
 import * as MyScriptJS from 'myscript/dist/myscript.esm.js';
 import 'myscript/dist/myscript.min.css';
 import latexToJs from './latexToJs';
@@ -12,22 +11,29 @@ import { FaShare } from 'react-icons/fa';
 import { FaSyncAlt } from 'react-icons/fa';
 import { FaPlayCircle } from 'react-icons/fa';
 
-@inject(({ state, props }) => ({
-  updateHandWritingFormulaAreaHandWritingFormulaEditor:
-    state.updateHandWritingFormulaAreaHandWritingFormulaEditor,
-  applicationKey: state.key.applicationKey,
-  hmacKey: state.key.hmacKey,
-  keyChange: state.keyChange,
-  editor: state.editor,
-  editorValue: state.editorValue,
-  activeTextFile: state.activeTextFile,
-  updateHandWritingFormulaAreaCode: state.updateHandWritingFormulaAreaCode,
-  updateHandWritingFormulaAreaCounter:
-    state.updateHandWritingFormulaAreaCounter,
-  updateHandWritingFormulaAreaResultVariable:
-    state.updateHandWritingFormulaAreaResultVariable,
-  updateHandWritingFormulaAreaCode: state.updateHandWritingFormulaAreaCode
-}))
+@inject(({ state }, props) => {
+  return {
+    updateHandWritingFormulaAreaHandWritingFormulaEditor:
+      state.updateHandWritingFormulaAreaHandWritingFormulaEditor,
+    applicationKey: state.key.applicationKey,
+    hmacKey: state.key.hmacKey,
+    keyChange: state.keyChange,
+    editor: state.editor,
+    editorValue: state.activeTextFile.text,
+    activeTextFileHandWritingFormulaAreas:
+      state.textFile[props.textfilenum].handWritingFormulaAreas,
+    updateHandWritingFormulaAreaCode: state.updateHandWritingFormulaAreaCode,
+    updateHandWritingFormulaAreaCounter:
+      state.updateHandWritingFormulaAreaCounter,
+    updateHandWritingFormulaAreaResultVariable:
+      state.updateHandWritingFormulaAreaResultVariable,
+    updateHandWritingFormulaAreaCode: state.updateHandWritingFormulaAreaCode,
+    resultVariable:
+      state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
+        .resultVariable,
+    activeTextFileType: state.textFile[props.textfilenum].type
+  };
+})
 @observer
 export default class HandWritingFormulaArea extends React.Component {
   constructor(props) {
@@ -154,9 +160,9 @@ export default class HandWritingFormulaArea extends React.Component {
       const editorValue = this.props.editorValue;
       const splitText = editorValue.split(`/*${this.props.num}*/`)[0];
       const jsSplit = splitText.split('{');
-      if (this.props.activeTextFile.type === 'javascript') {
+      if (this.props.activeTextFileType === 'javascript') {
         let jsCode = editorValue;
-        const areas = this.props.activeTextFile.handWritingFormulaAreas;
+        const areas = this.props.activeTextFileHandWritingFormulaAreas;
         for (let i = 0; i < areas.length; i++) {
           if (i !== this.props.num) {
             jsCode = jsCode.replace(`/*${i}*/`, areas[i].code);
@@ -190,7 +196,7 @@ export default class HandWritingFormulaArea extends React.Component {
               void main(void){}`;
           }
         })();
-        const areas = this.props.activeTextFile.handWritingFormulaAreas;
+        const areas = this.props.activeTextFileHandWritingFormulaAreas;
         for (let i = 0; i < areas.length; i++) {
           glslCode = glslCode.replace(`/*${i}*/`, areas[i].code);
         }
@@ -255,7 +261,7 @@ export default class HandWritingFormulaArea extends React.Component {
       needle: searchWord,
       regExp: false
     });
-    const range = editor.$search.findAll(editor.session)[0];
+    const range = editor.$search.find(editor.session);
     editor.session.replace(range, '');
   };
   handleConvert = () => {
@@ -283,13 +289,9 @@ export default class HandWritingFormulaArea extends React.Component {
         ref="handWritingFormulaArea"
         id="handWritingFormulaArea"
       >
-        <div id="resultVariableView">
-          {
-            this.props.activeTextFile.handWritingFormulaAreas[this.props.num]
-              .resultVariable
-          }
-        </div>
+        <div id="resultVariableView">{this.props.resultVariable}</div>
         <button
+          touch-action="auto"
           className="handWritingFormulaAreaButton"
           id="deleteButton"
           ref="delete"
@@ -298,6 +300,7 @@ export default class HandWritingFormulaArea extends React.Component {
           D
         </button>
         <button
+          touch-action="auto"
           className="handWritingFormulaAreaButton"
           id="clearButton"
           ref="clear"
@@ -306,6 +309,7 @@ export default class HandWritingFormulaArea extends React.Component {
           C
         </button>
         <button
+          touch-action="auto"
           className="handWritingFormulaAreaButton"
           id="undoButton"
           ref="undo"
@@ -314,6 +318,7 @@ export default class HandWritingFormulaArea extends React.Component {
           <FaReply />
         </button>
         <button
+          touch-action="auto"
           className="handWritingFormulaAreaButton"
           id="redoButton"
           ref="redo"
@@ -322,6 +327,7 @@ export default class HandWritingFormulaArea extends React.Component {
           <FaShare />
         </button>
         <button
+          touch-action="auto"
           className="handWritingFormulaAreaButton"
           id="convertButton"
           ref="convert"
@@ -329,7 +335,7 @@ export default class HandWritingFormulaArea extends React.Component {
         >
           <FaSyncAlt />
         </button>
-        <button
+        {/* <button
           className="handWritingFormulaAreaButton"
           id="autoConvertButton"
           ref="autoConvert"
@@ -342,7 +348,7 @@ export default class HandWritingFormulaArea extends React.Component {
           }}
         >
           <FaPlayCircle />
-        </button>
+        </button> */}
         <div
           id="handWritingFormulaEditor"
           ref="editor"

@@ -1,7 +1,11 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 
-@inject('state')
+@inject(({ state }) => ({
+  iframeElement: state.iframeElement,
+  runAreaPosition: state.runAreaPosition,
+  updateRunAreaPosition: state.updateRunAreaPosition
+}))
 @observer
 export default class RunAreaHeader extends React.Component {
   constructor(props) {
@@ -18,7 +22,7 @@ export default class RunAreaHeader extends React.Component {
     document.body.addEventListener('touchmove', this.handleMouseAndTouchMove);
     document.body.addEventListener('mouseup', this.handleMouseAndTouchUp);
     document.body.addEventListener('touchend', this.handleMouseAndTouchUp);
-    const iframe = this.props.state.iframeElement;
+    const iframe = this.props.iframeElement;
     iframe.contentDocument.addEventListener(
       'mousemove',
       this.handleIframeMouseAndTouchMove
@@ -45,8 +49,8 @@ export default class RunAreaHeader extends React.Component {
     });
   };
   handleMouseAndTouchMove = e => {
-    const position = this.props.state.runAreaPosition;
-    this.props.state.updateRunAreaPosition(
+    const position = this.props.runAreaPosition;
+    this.props.updateRunAreaPosition(
       position.x + e.pageX - this.state.x,
       position.y + e.pageY - this.state.y
     );
@@ -60,10 +64,10 @@ export default class RunAreaHeader extends React.Component {
     });
   };
   handleIframeMouseAndTouchMove = e => {
-    const iframe = this.props.state.iframeElement;
+    const iframe = this.props.iframeElement;
     const iframePosition = iframe.getBoundingClientRect();
-    const position = this.props.state.runAreaPosition;
-    this.props.state.updateRunAreaPosition(
+    const position = this.props.runAreaPosition;
+    this.props.updateRunAreaPosition(
       position.x + e.pageX + Math.floor(iframePosition.left) - this.state.x,
       position.y + e.pageY + Math.floor(iframePosition.top) - this.state.y
     );
@@ -87,7 +91,7 @@ export default class RunAreaHeader extends React.Component {
     );
     document.body.removeEventListener('mouseup', this.handleMouseAndTouchUp);
     document.body.removeEventListener('touchend', this.handleMouseAndTouchUp);
-    const iframe = this.props.state.iframeElement;
+    const iframe = this.props.iframeElement;
     iframe.contentDocument.removeEventListener(
       'mousemove',
       this.handleIframeMouseAndTouchMove

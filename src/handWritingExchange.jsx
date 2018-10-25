@@ -5,7 +5,11 @@ import AceEditor from 'react-ace';
 import 'brace/mode/javascript';
 import 'brace/mode/glsl';
 
-@inject('state')
+@inject(({ state }, props) => ({
+  activeTextFileType: state.textFile[props.textfilenum].type,
+  updateHandWritingFormulaAreaCodeEditor:
+    state.updateHandWritingFormulaAreaCodeEditor
+}))
 @observer
 export default class HandWritingExchange extends React.Component {
   constructor(props) {
@@ -16,15 +20,12 @@ export default class HandWritingExchange extends React.Component {
     };
   }
   componentDidMount() {
-    const mode = this.props.state.activeTextFile.type;
+    const mode = this.props.activeTextFileType;
     this.setState({
       mode: mode
     });
     const editor = this.refs.aceEditor.editor;
-    this.props.state.updateHandWritingFormulaAreaCodeEditor(
-      this.props.num,
-      editor
-    );
+    this.props.updateHandWritingFormulaAreaCodeEditor(this.props.num, editor);
   }
   handleChange = e => {
     this.setState({

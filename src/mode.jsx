@@ -47,6 +47,7 @@ export default class Mode extends React.Component {
     return (
       <React.Fragment>
         <button
+          touch-action="auto"
           id="mode"
           style={{
             color: this.state.fontColor

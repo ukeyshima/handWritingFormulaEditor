@@ -2,16 +2,21 @@ import React from 'react';
 import RunAreaHeader from './runAreaHeader.jsx';
 import { inject, observer } from 'mobx-react';
 
-@inject('state')
+@inject(({ state }) => ({
+  iframeElement: state.iframeElement,
+  updateIframeElement: state.updateIframeElement,
+  updateExecuteHTML: state.updateExecuteHTML,
+  textFile: state.textFile
+}))
 @observer
 export default class RunArea extends React.Component {
-  componentDidMount() {
-    this.props.state.updateIframeElement(this.refs.iframe);
-    this.props.state.updateExecuteHTML(this.executeHTML);
-    this.executeHTML(this.props.state.textFile);
+  async componentDidMount() {
+    await this.props.updateIframeElement(this.refs.iframe);
+    this.props.updateExecuteHTML(this.executeHTML);
+    this.executeHTML(this.props.textFile);
   }
   componentWillUnmount() {
-    this.props.state.updateIframeElement(null);
+    this.props.updateIframeElement(null);
   }
   executeHTML = textFile => {
     const domParser = new DOMParser();
@@ -78,7 +83,7 @@ export default class RunArea extends React.Component {
       const blob = new Blob([document_obj.documentElement.outerHTML], {
         type: 'text/html'
       });
-      this.props.state.iframeElement.contentWindow.location.replace(
+      this.props.iframeElement.contentWindow.location.replace(
         URL.createObjectURL(blob)
       );
     }
@@ -88,6 +93,7 @@ export default class RunArea extends React.Component {
       <div onMouseUp={this.handleMouseUp} style={this.props.style}>
         <RunAreaHeader />
         <iframe
+          touch-action="auto"
           ref="iframe"
           style={{
             width: this.props.style.width,

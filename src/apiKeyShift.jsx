@@ -1,7 +1,9 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 
-@inject('state')
+@inject(({ state }) => ({
+  keyChange: state.keyChange
+}))
 @observer
 export default class apiKeyShift extends React.Component {
   constructor(props) {
@@ -11,7 +13,7 @@ export default class apiKeyShift extends React.Component {
     };
   }
   handleClick = () => {
-    this.props.state.keyChange();
+    this.props.keyChange();
   };
   handleMouseLeave = () => {
     this.setState({

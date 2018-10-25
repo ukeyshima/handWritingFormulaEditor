@@ -4,17 +4,36 @@ import { inject, observer } from 'mobx-react';
 import { FaExchangeAlt } from 'react-icons/fa';
 import HandWritingFormulaArea from './handWritingFormulaArea.jsx';
 import HandWritingExchange from './handWritingExchange.jsx';
+import { toJS } from 'mobx';
 
-@inject(({ state }, props) => ({
-  editor: state.editor,
-  handWritingFormulaArea:
-    state.activeTextFile.handWritingFormulaAreas[props.num],
-  updateHandWritingFormulaAreaExchange:
-    state.updateHandWritingFormulaAreaExchange,
-  updateHandWritingFormulaAreaResizeEvent:
-    state.updateHandWritingFormulaAreaResizeEvent,
-  updateHandWritingFormulaAreaSize: state.updateHandWritingFormulaAreaSize
-}))
+@inject(({ state }, props) => {
+  return {
+    editor: state.editor,
+    activeTextFileHandWritingFormulaAreaHandWritingFormulaEditor:
+      state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
+        .handWritingFormulaEditor,
+    activeTextFileHandWritingFormulaAreaCodeEditor:
+      state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
+        .codeEditor,
+    handWritingFormulaAreaVisible:
+      state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
+        .visible,
+    handWritingFormulaAreaExchange:
+      state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
+        .exchange,
+    updateHandWritingFormulaAreaExchange:
+      state.updateHandWritingFormulaAreaExchange,
+    updateHandWritingFormulaAreaResizeEvent:
+      state.updateHandWritingFormulaAreaResizeEvent,
+    updateHandWritingFormulaAreaSize: state.updateHandWritingFormulaAreaSize,
+    handWritingFormulaAreaWidth:
+      state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
+        .width,
+    handWritingFormulaAreaHeight:
+      state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
+        .height
+  };
+})
 @observer
 export default class HandWritingFormulaAreaWrapper extends React.Component {
   constructor(props) {
@@ -23,23 +42,12 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
       prevEndRangeRow: 0,
       prevEndRangeColumn: 0
     };
-    this.shouldUpdate = false;
-  }
-  componentWillReceiveProps(nextProps) {
-    if (this.props.style.visibility !== nextProps.style.visibility) {
-      this.shouldUpdate = true;
-    } else {
-      this.shouldUpdate = false;
-    }
-  }
-  shouldComponentUpdate() {
-    return this.props.handWritingFormulaArea.visible || this.shouldUpdate;
   }
   handleMouseDownOrTouchStart = () => {
     this.props.editor.blur();
   };
   handleExchange = () => {
-    const bool = this.props.handWritingFormulaArea.exchange;
+    const bool = this.props.handWritingFormulaAreaExchange;
     this.props.updateHandWritingFormulaAreaExchange(this.props.num, !bool);
   };
   handleMouseAndTouchDownResize = e => {
@@ -67,8 +75,8 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
       : e.touches
         ? e.touches[0].pageY
         : e.changedTouches[0].pageY;
-    this.startWidth = this.props.handWritingFormulaArea.width;
-    this.startHeight = this.props.handWritingFormulaArea.height;
+    this.startWidth = this.props.handWritingFormulaAreaWidth;
+    this.startHeight = this.props.handWritingFormulaAreaHeight;
 
     const editor = this.props.editor;
     const prevEndRange = editor.renderer.pixelToScreenCoordinates(
@@ -116,7 +124,7 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
     const editor = this.props.editor;
     const searchWord = `/*${this.props.num}*/`;
     editor.$search.setOptions({ needle: searchWord, regExp: false });
-    const startRange = editor.$search.findAll(editor.session)[0].start;
+    const startRange = editor.$search.find(editor.session).start;
     const prevEndRange = {
       row: this.state.prevEndRangeRow,
       column: this.state.prevEndRangeColumn
@@ -143,6 +151,7 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
         column: prevEndRange.column
       }
     });
+    console.log(text);
     let minusText = '';
     for (let i = searchWord.length; i < text.length; i++) {
       let character = text[i];
@@ -164,7 +173,12 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
       },
       insertText
     );
+    this.props.activeTextFileHandWritingFormulaAreaHandWritingFormulaEditor.resize();
+    if (this.props.handWritingFormulaAreaExchange) {
+      this.props.activeTextFileHandWritingFormulaAreaCodeEditor.resize();
+    }
 
+    this.props.updateHandWritingFormulaAreaResizeEvent(this.props.num, false);
     document.body.removeEventListener(
       'mousemove',
       this.handleMouseAndTouchMoveResize
@@ -181,11 +195,6 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
       'touchend',
       this.handleMouseAndTouchUpResize
     );
-    this.props.handWritingFormulaArea.handWritingFormulaEditor.resize();
-    if (this.props.handWritingFormulaArea.exchange) {
-      this.props.handWritingFormulaArea.codeEditor.resize();
-    }
-    this.props.updateHandWritingFormulaAreaResizeEvent(this.props.num, false);
   };
   render() {
     return (
@@ -195,6 +204,7 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
         onTouchStart={this.handleMouseDownOrTouchStart}
       >
         <button
+          touch-action="auto"
           className="handWritingFormulaAreaButton"
           id="exchangeButton"
           onClick={this.handleExchange}
@@ -236,8 +246,8 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
           onTouchStart={this.handleMouseAndTouchDownResize}
         />
         <HandWritingFormulaArea
-          // model={this.props.model}
           num={this.props.num}
+          textfilenum={this.props.textfilenum}
           style={{
             position: 'absolute',
             width: Math.floor(this.props.status.width - 3),
@@ -251,6 +261,7 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
             return (
               <HandWritingExchange
                 num={this.props.num}
+                textfilenum={this.props.textfilenum}
                 code={this.props.status.code}
                 style={{
                   position: 'absolute',

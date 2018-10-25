@@ -5,7 +5,11 @@ import HandWritingFormulaAreaWrapper from './handwritingFormulaAreaWrapper.jsx';
 import { inject, observer } from 'mobx-react';
 import { toJS } from 'mobx';
 
-@inject('state')
+@inject(({ state }) => ({
+  runAreaRenderingFlag: state.runAreaRenderingFlag,
+  runAreaPosition: state.runAreaPosition,
+  textFile: state.textFile
+}))
 @observer
 export default class RenderingObject extends React.Component {
   render() {
@@ -13,13 +17,13 @@ export default class RenderingObject extends React.Component {
       <React.Fragment>
         <Editor />
         {(() => {
-          if (this.props.state.runAreaRenderingFlag) {
+          if (this.props.runAreaRenderingFlag) {
             return (
               <RunArea
                 style={{
                   position: 'absolute',
-                  left: this.props.state.runAreaPosition.x,
-                  top: this.props.state.runAreaPosition.y,
+                  left: this.props.runAreaPosition.x,
+                  top: this.props.runAreaPosition.y,
                   width: 400,
                   height: 400,
                   borderRadius: 5,
@@ -30,24 +34,25 @@ export default class RenderingObject extends React.Component {
             );
           }
         })()}
-        {this.props.state.activeTextFile.handWritingFormulaAreas.map((e, i) => {
-          console.log(i);
-          return (
-            <HandWritingFormulaAreaWrapper
-              style={{
-                position: 'absolute',
-                width: Math.floor(e.width),
-                height: Math.floor(e.height),
-                top: e.y,
-                left: e.x,
-                visibility: e.visible ? 'visible' : 'hidden'
-              }}
-              // model={toJS(e.model)}
-              status={e}
-              num={i}
-              key={i}
-            />
-          );
+        {this.props.textFile.map((e, j) => {
+          return e.handWritingFormulaAreas.map((f, i) => {
+            return (
+              <HandWritingFormulaAreaWrapper
+                style={{
+                  position: 'absolute',
+                  width: Math.floor(f.width),
+                  height: Math.floor(f.height),
+                  top: f.y,
+                  left: f.x,
+                  visibility: f.visible ? 'visible' : 'hidden'
+                }}
+                status={f}
+                textfilenum={j}
+                num={i}
+                key={i}
+              />
+            );
+          });
         })}
       </React.Fragment>
     );

@@ -2,7 +2,15 @@ import React from 'react';
 import { inject, observer } from 'mobx-react';
 import { FaSquare } from 'react-icons/fa';
 
-@inject('state')
+@inject(({ state }) => ({
+  updateStopButton: state.updateStopButton,
+  editor: state.editor,
+  updateActiveText: state.updateActiveText,
+  updateRunAreaRenderingFlag: state.updateRunAreaRenderingFlag,
+  updateRunButtonColor: state.updateRunButtonColor,
+  updateIframeElement: state.updateIframeElement,
+  updateHotReload: state.updateHotReload
+}))
 @observer
 export default class StopButton extends React.Component {
   constructor(props) {
@@ -13,17 +21,17 @@ export default class StopButton extends React.Component {
     };
   }
   componentDidMount() {
-    this.props.state.updateStopButton(this.refs.stopButton);
+    this.props.updateStopButton(this.refs.stopButton);
   }
   handleClick = () => {
-    this.props.state.updateActiveText(this.props.state.editor.getValue());
-    this.props.state.updateRunAreaRenderingFlag(false);
-    this.props.state.updateRunButtonColor({
+    this.props.updateActiveText(this.props.editor.getValue());
+    this.props.updateRunAreaRenderingFlag(false);
+    this.props.updateRunButtonColor({
       backgroundColor: '#eee',
       fontColor: ' rgb(0, 185, 158)'
     });
-    this.props.state.updateIframeElement(null);
-    this.props.state.updateHotReload(false);
+    this.props.updateIframeElement(null);
+    this.props.updateHotReload(false);
   };
   handleMouseEnter = () => {
     this.setState({
@@ -40,6 +48,7 @@ export default class StopButton extends React.Component {
   render() {
     return (
       <button
+        touch-action="auto"
         ref="stopButton"
         style={{
           backgroundColor: this.state.backgroundColor,

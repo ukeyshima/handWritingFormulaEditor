@@ -2,10 +2,10 @@
     <head>
     <link rel="stylesheet" href="main.css">
 	<script id="fs" type="fragmentShader.glsl"></script>
-	<script id="vs" type="vertexShader.glsl"></script>
-    <script src="main.js"></script>
+	<script id="vs" type="vertexShader.glsl"></script>    
     </head>
     <body>
         <canvas id="canvas"></canvas>        
+        <script src="main.js"></script>
 </body>
 </html>

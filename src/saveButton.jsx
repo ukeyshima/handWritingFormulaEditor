@@ -1,7 +1,15 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import { toJS } from 'mobx';
-@inject('state')
+
+@inject(({ state }) => ({
+  activeTextFileFileName: state.activeTextFile.fileName,
+  activeTextFileText: state.activeTextFile.text,
+  editor: state.editor,
+  textFile: state.textFile,
+  activeTextFileHandWritingFormulaAreas:
+    state.activeTextFile.handWritingFormulaAreas
+}))
 @observer
 export default class SaveButton extends React.Component {
   constructor(props) {
@@ -34,7 +42,7 @@ export default class SaveButton extends React.Component {
     a.download =
       type === 'application/json'
         ? 'handWritingFormula.json'
-        : this.props.state.activeTextFile.fileName;
+        : this.props.activeTextFileFileName;
     data = type === 'application/json' ? JSON.stringify(data) : data;
     a.href = window.URL.createObjectURL(
       new Blob([data], { type: 'text/plain' })
@@ -43,13 +51,13 @@ export default class SaveButton extends React.Component {
     a.dispatchEvent(e);
   };
   handleClick = () => {
-    let data = this.props.state.editor.getValue();
-    if (this.props.state.activeTextFile.fileName === 'index.html') {
+    let data = this.props.editor.getValue();
+    if (this.props.activeTextFileFileName === 'index.html') {
       const domParser = new DOMParser();
       let document_obj = null;
       try {
         document_obj = domParser.parseFromString(
-          this.props.state.activeTextFile.text,
+          this.props.activeTextFileText,
           'text/html'
         );
         if (document_obj.getElementsByTagName('parsererror').length) {
@@ -62,7 +70,7 @@ export default class SaveButton extends React.Component {
         const scripts = document_obj.getElementsByTagName('script');
         for (let i = 0; i < scripts.length; i++) {
           if (scripts[i].type) {
-            const textFile = this.props.state.textFile.find(e => {
+            const textFile = this.props.textFile.find(e => {
               return e.fileName === scripts[i].type;
             });
             scripts[i].text = textFile.text;
@@ -72,7 +80,7 @@ export default class SaveButton extends React.Component {
       }
     }
     this.download(data, 'text/plain');
-    let data2 = toJS(this.props.state.activeTextFile.handWritingFormulaAreas);
+    let data2 = toJS(this.props.activeTextFileHandWritingFormulaAreas);
     data2.forEach(e => {
       e.handWritingFormulaEditor = null;
     });
@@ -91,6 +99,7 @@ export default class SaveButton extends React.Component {
   render() {
     return (
       <button
+        touch-action="auto"
         style={{
           color: this.state.fontColor
         }}

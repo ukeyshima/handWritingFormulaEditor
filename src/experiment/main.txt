@@ -9,5 +9,8 @@ const h=canvas.height;
 for(let i=0;i<w;i++){
     for(let j=0;j<h;j++){
 
+    const v=Math.random();
+    context.fillStyle="rgb("+Math.floor(v*255)+","+Math.floor(v*255)+","+Math.floor(v*255)+")";
+    context.fillRect(i,j,1,1);
    }
 }

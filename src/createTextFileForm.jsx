@@ -1,9 +1,18 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import ExtensionSelection from './extensionSelection.jsx';
-import { observable, action } from 'mobx';
+import { toJS } from 'mobx';
 
-@inject('state')
+@inject(({ state }) => ({
+  textFile: state.textFile,
+  editor: state.editor,
+  updateActiveUndoStack: state.updateActiveUndoStack,
+  updateActiveRedoStack: state.updateActiveRedoStack,
+  updateActiveText: state.updateActiveText,
+  incrementId: state.incrementId,
+  id: state.id,
+  pushTextFile: state.pushTextFile
+}))
 @observer
 export default class CreateTextFileForm extends React.Component {
   constructor(props) {
@@ -22,25 +31,16 @@ export default class CreateTextFileForm extends React.Component {
       extensionName: extension
     });
   };
-  handleClick = () => {
+  handleClick = async () => {
     if (
-      !this.props.state.textFile.some(e => {
+      !this.props.textFile.some(e => {
         return (
           e.fileName === this.state.inputValue + '.' + this.state.extensionName
         );
       })
     ) {
-      const undoManager = this.props.state.editor.session.$undoManager;
-      const undoStack = undoManager.$undoStack.concat();
-      const redoStack = undoManager.$redoStack.concat();
-      this.props.state.updateActiveUndoStack(undoStack);
-      this.props.state.updateActiveRedoStack(redoStack);
-      const text = this.props.state.editor.getValue();
-      this.props.state.updateActiveText(text);
-      this.props.state.editor.setValue('');
-      this.props.state.updateEditorValue('');
-      this.props.state.incrementId();
-      const id = this.props.state.id;
+      this.props.incrementId();
+      const id = this.props.id;
       const type = (() => {
         let result;
         switch (this.state.extensionName) {
@@ -56,22 +56,24 @@ export default class CreateTextFileForm extends React.Component {
         }
         return result;
       })();
-      this.props.state.pushTextFile(
-        observable({
-          id: id,
-          type: type,
-          fileName: this.state.inputValue + '.' + this.state.extensionName,
-          removed: false,
-          text: '',
-          undoStack: null,
-          redoStack: null,
-          handWritingFormulaAreaId: 0,
-          handWritingFormulaAreas: observable([])
-        })
-      );
-      setTimeout(() => {
-        this.props.state.editor.session.$undoManager.reset();
-      }, 1);
+
+      const undoManager = this.props.editor.session.$undoManager;
+      const undoStack = undoManager.$undoStack.slice();
+      const redoStack = undoManager.$redoStack.slice();
+      await this.props.updateActiveUndoStack(undoStack);
+      await this.props.updateActiveRedoStack(redoStack);
+
+      this.props.pushTextFile({
+        id: id,
+        type: type,
+        fileName: this.state.inputValue + '.' + this.state.extensionName,
+        removed: false,
+        text: '',
+        undoStack: [],
+        redoStack: [],
+        handWritingFormulaAreaId: 0,
+        handWritingFormulaAreas: []
+      });
     }
   };
   handleMouseEnter = () => {
@@ -87,6 +89,7 @@ export default class CreateTextFileForm extends React.Component {
   render() {
     return (
       <div
+        touch-action="auto"
         className="dropDown"
         id="createTextForm"
         style={{

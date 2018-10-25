@@ -2,27 +2,36 @@ import React from 'react';
 import { inject, observer } from 'mobx-react';
 import { FaPlay } from 'react-icons/fa';
 
-@inject('state')
+@inject(({ state }) => ({
+  updateRunButton: state.updateRunButton,
+  updateActiveText: state.updateActiveText,
+  editor: state.editor,
+  updateRunAreaRenderingFlag: state.updateRunAreaRenderingFlag,
+  updateRunButtonColor: state.updateRunButtonColor,
+  iframeElement: state.iframeElement,
+  runButtonColorBackgroundColor: state.runButtonColor.backgroundColor,
+  runButtonColorFontColor: state.runButtonColor.fontColor
+}))
 @observer
 export default class RunButton extends React.Component {
   componentDidMount() {
-    this.props.state.updateRunButton(this.refs.runButton);
+    this.props.updateRunButton(this.refs.runButton);
   }
   handleClick = () => {
-    const text = this.props.state.editor.getValue();
-    this.props.state.updateActiveText(text);
-    this.props.state.updateRunAreaRenderingFlag(true);
+    const text = this.props.editor.getValue();
+    this.props.updateActiveText(text);
+    this.props.updateRunAreaRenderingFlag(true);
   };
 
   handleMouseEnter = () => {
-    this.props.state.updateRunButtonColor({
+    this.props.updateRunButtonColor({
       backgroundColor: ' rgb(0, 185, 158)',
       fontColor: '#eee'
     });
   };
   handleMouseLeave = () => {
-    if (!this.props.state.iframeElement) {
-      this.props.state.updateRunButtonColor({
+    if (!this.props.iframeElement) {
+      this.props.updateRunButtonColor({
         backgroundColor: '#eee',
         fontColor: ' rgb(0, 185, 158)'
       });
@@ -31,10 +40,11 @@ export default class RunButton extends React.Component {
   render() {
     return (
       <button
+        touch-action="auto"
         ref="runButton"
         style={{
-          backgroundColor: this.props.state.runButtonColor.backgroundColor,
-          color: this.props.state.runButtonColor.fontColor
+          backgroundColor: this.props.runButtonColorBackgroundColor,
+          color: this.props.runButtonColorFontColor
         }}
         onClick={this.handleClick}
         onMouseLeave={this.handleMouseLeave}

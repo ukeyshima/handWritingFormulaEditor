@@ -47,6 +47,7 @@ export default class File extends React.Component {
     return (
       <React.Fragment>
         <button
+          touch-action="auto"
           id="file"
           style={{
             color: this.state.fontColor

@@ -35,7 +35,7 @@ let latex2js,
 
 splitCodeClose = splitCode => {
   if (splitCode.split('{').length > splitCode.split('}').length) {
-    return (
+    splitCode =
       splitCode +
       `${(() => {
         let result = '';
@@ -47,10 +47,9 @@ splitCodeClose = splitCode => {
           result += '}';
         }
         return result;
-      })()}`
-    );
+      })()}`;
   } else if (splitCode.split('{').length < splitCode.split('}').length) {
-    return (
+    splitCode =
       `${(() => {
         let result = '';
         for (
@@ -61,11 +60,39 @@ splitCodeClose = splitCode => {
           result += '{';
         }
         return result;
+      })()}` + splitCode;
+  }
+  if (splitCode.split('(').length > splitCode.split(')').length) {
+    return (
+      splitCode +
+      `${(() => {
+        let result = '';
+        for (
+          let i = 0;
+          i < splitCode.split('(').length - splitCode.split(')').length;
+          i++
+        ) {
+          result += ')';
+        }
+        return result;
+      })()}`
+    );
+  } else if (splitCode.split('(').length < splitCode.split(')').length) {
+    return (
+      `${(() => {
+        let result = '';
+        for (
+          let i = 0;
+          i < splitCode.split(')').length - splitCode.split('(').length;
+          i++
+        ) {
+          result += '(';
+        }
+        return result;
       })()}` + splitCode
     );
-  } else {
-    return splitCode;
   }
+  return splitCode;
 };
 codeSearch = (code, variable) => {
   const glovalSplitCode = code.split(/\/\*\d+\*\//);
@@ -556,16 +583,6 @@ vecShape = input => {
         result = `${shape(input[0].base.body)}.reduce((pre,cur,i)=>{
         return pre+cur*${shape(input[2].base.body)}[i];
       },0)${input.length > 3 ? vecShape(input.slice(3, input.length)) : ''}`;
-      } else if (
-        input.length > 1 &&
-        input[1].type === 'atom' &&
-        input[1].text === '='
-      ) {
-        result = codeSearch(code, shape(input[0].base.body))
-          ? shape(input[0].base.body)
-          : `let ${shape(input[0].base.body)}=${
-              input.length > 2 ? vecShape(input.slice(2, input.length)) : ''
-            }`;
       } else {
         result = `${shape(input[0].base.body)}${
           input.length > 1 ? vecShape(input.slice(1, input.length)) : ''
@@ -574,8 +591,6 @@ vecShape = input => {
       break;
     case 'atom':
       switch (input[0].text) {
-        case '=':
-          break;
         default:
           result = (() => {
             const startIndex = input.findIndex(e => {
@@ -699,6 +714,37 @@ shape = input => {
     return matrixShape(input);
   } else if (
     input.some(e => {
+      return e.type === 'atom' && e.text === '=';
+    })
+  ) {
+    const index = input.findIndex(e => {
+      return e.type === 'atom' && e.text === '=';
+    });
+    const arrayIndex = input.findIndex(e => {
+      return e.type === 'leftright' && e.left === '[' && e.right === ']';
+    });
+    if (arrayIndex === -1) {
+      const variable = input.slice(0, index).reduce((pre, cur) => {
+        return pre + cur.text;
+      }, '');
+      return codeSearch(code, variable)
+        ? `${variable}=${shape(input.slice(index + 1, input.length))}`
+        : `let ${variable}=${shape(input.slice(index + 1, input.length))}`;
+    } else {
+      const variable = input.slice(0, arrayIndex).reduce((pre, cur) => {
+        return pre + cur.text;
+      }, '');
+      return codeSearchArray(code, variable)
+        ? `${variable}[${shape(input[arrayIndex].body)}]=${shape(
+            input.slice(index + 1, input.length)
+          )}`
+        : `const ${variable}=[];
+         ${variable}[${shape(input[arrayIndex].body)}]=${shape(
+            input.slice(index + 1, input.length)
+          )}`;
+    }
+  } else if (
+    input.some(e => {
       return (
         e.type === 'accent' &&
         (e.label === '\\vec' || e.label === '\\overrightarrow')
@@ -723,59 +769,122 @@ shape = input => {
       }`;
       break;
     case 'mathord':
-      result = `${
-        input[0].text === '\\pi'
-          ? `Math.PI`
-          : input.length > 1 &&
-            input[1].type === 'atom' &&
-            input[1].text === '='
-            ? (() => {
-                return codeSearch(code, input[0].text)
-                  ? input[0].text
-                  : `let ${input[0].text}`;
-              })()
-            : input[0].text
-      }${
-        input.length > 1
-          ? input[1].type === 'leftright' &&
-            input[1].left === '[' &&
-            input[1].right === ']'
-            ? (() => {
-                let index = input.slice(1, input.length).findIndex(e => {
-                  return !(
-                    e.type === 'leftright' &&
-                    e.left === '[' &&
-                    e.right === ']'
-                  );
-                });
-                index = index === -1 ? input.length - 1 : index;
-                if (codeSearchArray(code, input[0].text)) {
-                  const array = input.slice(1, index + 1).map(e => {
-                    return `[${shape(e.body)}]`;
-                  });
-                  return `${array.reduce((pre, cur) => {
-                    return pre + cur;
-                  })}${nextMulti(input, index + 1)}`;
-                } else {
-                  const array = input.slice(1, index + 1).map(e => {
-                    return `Math.floor(${shape(e.body)})`;
-                  });
-                  return `*${array.reduce((pre, cur) => {
-                    return pre + '*' + cur;
-                  })}${nextMulti(input, index + 1)}`;
-                }
-              })()
-            : (input[1].type !== 'atom' &&
-              input[1].type !== 'punct' &&
-              input[1].type !== 'bin' &&
-              input[1].type !== 'spacing' &&
-              (input[1].type === 'leftright'
-                ? !codeSearch(code, input[0].text)
-                : true)
-                ? `*`
-                : ``) + shape(input.slice(1, input.length))
-          : ``
-      }`;
+      result = (() => {
+        if (input.length > 1) {
+          let index = input.findIndex(e => {
+            return e.type !== 'mathord' && e.type !== 'textord';
+          });
+          let variable = '';
+          index = index === -1 ? input.length : index;
+          for (let i = index; i > 0; i--) {
+            if (
+              codeSearch(
+                code,
+                input.slice(0, i).reduce((pre, cur) => {
+                  return pre + cur.text;
+                }, '')
+              )
+            ) {
+              variable = `${input.slice(0, i).reduce((pre, cur) => {
+                return pre + cur.text;
+              }, '')}${i < index ? '*' + shape(input.slice(i, index)) : ''}`;
+              break;
+            }
+          }
+          if (variable.length === 0) {
+            return `${input[0].text}${
+              input[1].type === 'leftright' &&
+              input[1].left === '[' &&
+              input[1].right === ']'
+                ? (() => {
+                    let index = input.slice(1, input.length).findIndex(e => {
+                      return !(
+                        e.type === 'leftright' &&
+                        e.left === '[' &&
+                        e.right === ']'
+                      );
+                    });
+                    index = index === -1 ? input.length - 1 : index;
+                    if (codeSearchArray(code, input[0].text)) {
+                      const array = input.slice(1, index + 1).map(e => {
+                        return `[${shape(e.body)}]`;
+                      });
+                      return `${array.reduce((pre, cur) => {
+                        return pre + cur;
+                      })}${nextMulti(input, index + 1)}`;
+                    } else {
+                      const array = input.slice(1, index + 1).map(e => {
+                        return `Math.floor(${shape(e.body)})`;
+                      });
+                      return `*${array.reduce((pre, cur) => {
+                        return pre + '*' + cur;
+                      })}${nextMulti(input, index + 1)}`;
+                    }
+                  })()
+                : (input[1].type !== 'atom' &&
+                  input[1].type !== 'punct' &&
+                  input[1].type !== 'bin' &&
+                  input[1].type !== 'spacing' &&
+                  (input[1].type === 'leftright'
+                    ? !codeSearch(code, input[0].text)
+                    : true)
+                    ? `*`
+                    : ``) + shape(input.slice(1, input.length))
+            }`;
+          } else if (input.length === index) {
+            return variable;
+          } else {
+            return `${variable}${
+              input[index].type === 'leftright' &&
+              input[index].left === '[' &&
+              input[index].right === ']'
+                ? (() => {
+                    let arrayIndex = input
+                      .slice(index, input.length)
+                      .findIndex(e => {
+                        return !(
+                          e.type === 'leftright' &&
+                          e.left === '[' &&
+                          e.right === ']'
+                        );
+                      });
+                    arrayIndex =
+                      arrayIndex === -1 ? input.length - 1 : arrayIndex;
+                    if (codeSearchArray(code, variable)) {
+                      const array = input
+                        .slice(index, index + arrayIndex)
+                        .map(e => {
+                          return `[${shape(e.body)}]`;
+                        });
+                      return `${array.reduce((pre, cur) => {
+                        return pre + cur;
+                      })}${nextMulti(input, index + arrayIndex)}`;
+                    } else {
+                      const array = input
+                        .slice(index, index + arrayIndex)
+                        .map(e => {
+                          return `Math.floor(${shape(e.body)})`;
+                        });
+                      return `*${array.reduce((pre, cur) => {
+                        return pre + '*' + cur;
+                      })}${nextMulti(input, index + arrayIndex)}`;
+                    }
+                  })()
+                : (input[index].type !== 'atom' &&
+                  input[index].type !== 'punct' &&
+                  input[index].type !== 'bin' &&
+                  input[index].type !== 'spacing' &&
+                  (input[index].type === 'leftright'
+                    ? !codeSearch(code, variable)
+                    : true)
+                    ? `*`
+                    : ``) + shape(input.slice(index, input.length))
+            }`;
+          }
+        } else {
+          return input[0].text === '\\pi' ? `Math.PI` : input[0].text;
+        }
+      })();
       break;
     case 'spacing':
       result = `],[${

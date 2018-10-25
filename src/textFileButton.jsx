@@ -1,7 +1,27 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
+import { toJS } from 'mobx';
 
-@inject('state')
+@inject(({ state }) => ({
+  hotReload: state.hotReload,
+  updateHotReload: state.updateHotReload,
+  editor: state.editor,
+  updateActiveUndoStack: state.updateActiveUndoStack,
+  updateActiveRedoStack: state.updateActiveRedoStack,
+  updateActiveText: state.updateActiveText,
+  textFile: state.textFile,
+  changeActiveTextFile: state.changeActiveTextFile,
+  updateHandWritingFormulaAreaAnchor: state.updateHandWritingFormulaAreaAnchor,
+  executeHTML: state.executeHTML,
+  activeTextFileFileName: state.activeTextFile.fileName,
+  activeTextFile: state.activeTextFile,
+  removeTextFile: state.removeTextFile,
+  updateHandWritingFormulaAreaVisible:
+    state.updateHandWritingFormulaAreaVisible,
+  activeTextFileUndoStack: state.activeTextFile.undoStack,
+  activeTextFileRedoStack: state.activeTextFile.redoStack,
+  activeTextFileId: state.activeTextFileId
+}))
 @observer
 export default class TextFileButton extends React.Component {
   constructor(props) {
@@ -33,106 +53,106 @@ export default class TextFileButton extends React.Component {
       deleteMouseEnter: false
     });
   };
-  handleClick = (fileName, e) => {
-    if (e.target.id !== 'delete') {
-      const hotReloadFlag = this.props.state.hotReload;
-      this.props.state.updateHotReload(false);
-      const undoManager = this.props.state.editor.session.$undoManager;
-      let undoStack = undoManager.$undoStack.concat();
-      let redoStack = undoManager.$redoStack.concat();
-      this.props.state.updateActiveUndoStack(undoStack);
-      this.props.state.updateActiveRedoStack(redoStack);
-
-      const text = this.props.state.editor.getValue();
-      this.props.state.updateActiveText(text);
-      this.props.state.editor.setValue('');
-      this.props.state.updateEditorValue('');
-      const textFile = this.props.state.textFile;
-      const activeFile = textFile.find(e => {
+  handleClick = async (fileName, e) => {
+    if (
+      e.target.id !== 'delete' &&
+      fileName !== this.props.activeTextFileFileName
+    ) {
+      const hotReloadFlag = this.props.hotReload;
+      this.props.updateHotReload(false);
+      const undoManager = this.props.editor.session.$undoManager;
+      const undoStack = undoManager.$undoStack.slice();
+      const redoStack = undoManager.$redoStack.slice();
+      await this.props.updateActiveUndoStack(undoStack);
+      await this.props.updateActiveRedoStack(redoStack);
+      const textFile = this.props.textFile;
+      const activeFileIndex = textFile.findIndex(e => {
         return e.fileName === fileName;
       });
-      this.props.state.changeActiveTextFile(activeFile);
-      this.props.state.updateEditorValue(activeFile.text);
-
+      await this.props.changeActiveTextFile(activeFileIndex);
       setTimeout(() => {
-        const undoStack = activeFile.undoStack;
-        const redoStack = activeFile.redoStack;
-        this.props.state.editor.session.$undoManager.reset();
-        this.props.state.editor.session.$undoManager.$undoStack = undoStack;
-        this.props.state.editor.session.$undoManager.$redoStack = redoStack;
-        this.props.state.activeTextFile.handWritingFormulaAreas.forEach(
-          (e, i) => {
-            const searchWord = `/*${i}*/`;
-            this.props.state.editor.$search.setOptions({
-              needle: searchWord,
-              regExp: false
-            });
-            const range = this.props.state.editor.$search.findAll(
-              this.props.state.editor.session
-            );
-            if (range.length > 0) {
-              const position = this.props.state.editor.renderer.textToScreenCoordinates(
-                range[0].start
+        undoManager.reset();
+        const activeUndoStack = this.props.activeTextFileUndoStack;
+        const activeRedoStack = this.props.activeTextFileRedoStack;
+        undoManager.$undoStack = activeUndoStack;
+        undoManager.$redoStack = activeRedoStack;
+        this.props.textFile.forEach((e, i) => {
+          e.handWritingFormulaAreas.forEach((f, j) => {
+            if (i === this.props.activeTextFileId) {
+              const searchWord = `/*${j}*/`;
+              this.props.editor.$search.setOptions({
+                needle: searchWord,
+                regExp: false
+              });
+              const range = this.props.editor.$search.find(
+                this.props.editor.session
               );
-              this.props.state.updateHandWritingFormulaAreaAnchor(
-                i,
-                this.props.state.activeTextFile.handWritingFormulaAreas[i].x,
-                position.pageY
-              );
-              this.props.state.updateHandWritingFormulaAreaVisible(i, true);
+              if (range) {
+                const position = this.props.editor.renderer.textToScreenCoordinates(
+                  range.start
+                );
+                if (
+                  position.pageY + f.height > 0 &&
+                  position.pageY < window.innerHeight
+                ) {
+                  this.props.updateHandWritingFormulaAreaAnchor(
+                    j,
+                    position.pageX,
+                    position.pageY
+                  );
+                  this.props.updateHandWritingFormulaAreaVisible(i, j, true);
+                }
+              } else {
+                this.props.updateHandWritingFormulaAreaVisible(i, j, false);
+              }
             } else {
-              this.props.state.updateHandWritingFormulaAreaVisible(i, false);
+              this.props.updateHandWritingFormulaAreaVisible(i, j, false);
             }
-          }
-        );
-      }, 1);
-      if (hotReloadFlag) {
-        this.props.state.updateHotReload(hotReloadFlag);
-        const textFIle = this.props.state.textFile;
-        this.props.state.executeHTML(textFIle);
-      }
+          });
+        });
+        if (hotReloadFlag) {
+          this.props.updateHotReload(hotReloadFlag);
+          const textFIle = this.props.textFile;
+          this.props.executeHTML(textFIle);
+        }
+      }, 10);
     }
   };
-  handleDeleteClick = fileName => {
-    const hotReloadFlag = this.props.state.hotReload;
-    this.props.state.updateHotReload(false);
-    const textFile = this.props.state.textFile;
-    const activeFile =
-      this.props.state.activeTextFile.fileName === fileName
-        ? textFile[0]
-        : this.props.state.activeTextFile;
-    this.props.state.updateEditorValue(activeFile.text);
-    this.props.state.changeActiveTextFile(activeFile);
-    const undoManager = this.props.state.editor.session.$undoManager;
-    const undoStack = undoManager.$undoStack.concat();
-    const redoStack = undoManager.$redoStack.concat();
-    this.props.state.updateActiveUndoStack(undoStack);
-    this.props.state.updateActiveRedoStack(redoStack);
-    undoManager.reset();
+  handleDeleteClick = async fileName => {
+    const hotReloadFlag = this.props.hotReload;
+    this.props.updateHotReload(false);
+    const textFile = this.props.textFile;
+    const activeFileIndex =
+      this.props.activeTextFileFileName === fileName
+        ? 0
+        : this.props.activeTextFileId;
+    await this.props.changeActiveTextFile(activeFileIndex);
     const targetFile = textFile.find((e, i) => {
       return e.fileName === fileName;
     });
-    this.props.state.removeTextFile(targetFile);
+    await this.props.removeTextFile(targetFile);
     setTimeout(() => {
+      const undoManager = this.props.editor.session.$undoManager;
       undoManager.reset();
-      const undoStack = this.props.state.activeTextFile.undoStack;
-      const redoStack = this.props.state.activeTextFile.redoStack;
-      this.props.state.editor.session.$undoManager.$undoStack = undoStack;
-      this.props.state.editor.session.$undoManager.$redoStack = redoStack;
-    }, 1);
-    if (hotReloadFlag) {
-      this.props.state.updateHotReload(hotReloadFlag);
-      const textFIle = this.props.state.textFile;
-      this.props.state.executeHTML(textFIle);
-    }
+      const activeUndoStack = toJS(this.props.activeTextFileUndoStack);
+      const activeRedoStack = toJS(this.props.activeTextFileRedoStack);
+      undoManager.$undoStack = activeUndoStack;
+      undoManager.$redoStack = activeRedoStack;
+      if (hotReloadFlag) {
+        this.props.updateHotReload(hotReloadFlag);
+        const textFIle = this.props.textFile;
+        this.props.executeHTML(textFIle);
+      }
+    }, 10);
   };
 
   render() {
     return (
       <button
+        touch-action="auto"
         style={(() => {
           const active =
-            this.props.state.activeTextFile.fileName === this.props.fileName;
+            this.props.activeTextFileFileName === this.props.fileName;
           const mouseEnter = this.state.mouseEnter;
           return {
             color: active
@@ -158,8 +178,7 @@ export default class TextFileButton extends React.Component {
                 onMouseLeave={this.handleDeleteMouseLeave}
                 style={(() => {
                   const active =
-                    this.props.state.activeTextFile.fileName ===
-                    this.props.fileName;
+                    this.props.activeTextFileFileName === this.props.fileName;
                   const mouseEnter = this.state.mouseEnter;
                   const deleteMouseEnter = this.state.deleteMouseEnter;
                   return {

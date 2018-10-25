@@ -1,7 +1,11 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 
-@inject('state')
+@inject(({ state }) => ({
+  updateHandWritingFormulaAreas: state.updateHandWritingFormulaAreas,
+  updateHandWritingFormulaAreaId: state.updateHandWritingFormulaAreaId,
+  editor: state.editor
+}))
 @observer
 export default class LoadButton extends React.Component {
   constructor(props) {
@@ -16,12 +20,12 @@ export default class LoadButton extends React.Component {
     reader.readAsText(file[0]);
     reader.onload = () => {
       if (file[0].type === 'application/json') {
-        this.props.state.updateHandWritingFormulaAreas([]);
+        this.props.updateHandWritingFormulaAreas([]);
         const json = JSON.parse(reader.result);
-        this.props.state.updateHandWritingFormulaAreas(json);
-        this.props.state.updateHandWritingFormulaAreaId(json.length);
+        this.props.updateHandWritingFormulaAreas(json);
+        this.props.updateHandWritingFormulaAreaId(json.length);
       } else {
-        this.props.state.editor.setValue(reader.result);
+        this.props.editor.setValue(reader.result);
       }
     };
     delete this.inputFile;
@@ -64,6 +68,7 @@ export default class LoadButton extends React.Component {
     return (
       <React.Fragment>
         <button
+          touch-action="auto"
           style={{
             color: this.state.fontColor
           }}

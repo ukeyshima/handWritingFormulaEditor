@@ -1,10 +1,16 @@
 //export to modeSelect.jsx
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-import { observable, action } from 'mobx';
 import { FaPencilAlt } from 'react-icons/fa';
 
-@inject('state')
+@inject(({ state }) => ({
+  activeTextFileType: state.activeTextFile.type,
+  editor: state.editor,
+  activeTextFileHandWritingFormulaAreaId:
+    state.activeTextFile.handWritingFormulaAreaId,
+  incrementHandWritingFormulaAreaId: state.incrementHandWritingFormulaAreaId,
+  pushHandWritingFormulaAreas: state.pushHandWritingFormulaAreas
+}))
 @observer
 export default class CreateHandWritingFormulaArea extends React.Component {
   constructor(props) {
@@ -18,15 +24,15 @@ export default class CreateHandWritingFormulaArea extends React.Component {
   }
   handleClick = () => {
     if (
-      this.props.state.activeTextFile.type === 'javascript' ||
-      this.props.state.activeTextFile.type === 'glsl'
+      this.props.activeTextFileType === 'javascript' ||
+      this.props.activeTextFileType === 'glsl'
     ) {
-      const editor = this.props.state.editor;
+      const editor = this.props.editor;
       const selection = editor.getSelectionRange();
       const startRange = selection.start;
       const startPosition = editor.renderer.textToScreenCoordinates(startRange);
-      const id = this.props.state.activeTextFile.handWritingFormulaAreaId;
-      this.props.state.incrementHandWritingFormulaAreaId();
+      const id = this.props.activeTextFileHandWritingFormulaAreaId;
+      this.props.incrementHandWritingFormulaAreaId();
       const endTextCoordinate = editor.renderer.pixelToScreenCoordinates(
         startPosition.pageX + this.width,
         startPosition.pageY + this.height
@@ -45,7 +51,7 @@ export default class CreateHandWritingFormulaArea extends React.Component {
         }
       }
       editor.insert(word);
-      this.props.state.pushHandWritingFormulaAreas({
+      this.props.pushHandWritingFormulaAreas({
         width: this.width,
         height: this.height,
         x: startPosition.pageX,
@@ -77,6 +83,7 @@ export default class CreateHandWritingFormulaArea extends React.Component {
   render() {
     return (
       <button
+      touch-action="auto"
         style={{
           backgroundColor: this.state.backgroundColor,
           color: this.state.fontColor

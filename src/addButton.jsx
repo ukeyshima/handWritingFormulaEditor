@@ -51,6 +51,7 @@ export default class AddButton extends React.Component {
     return (
       <React.Fragment>
         <button
+          touch-action="auto"
           id="addButton"
           style={{
             color: this.state.fontColor

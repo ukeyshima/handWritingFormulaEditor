@@ -15,6 +15,7 @@ export default class ModeSelect extends React.Component {
   render() {
     return (
       <div
+        touch-action="auto"
         className="dropDown"
         id="modeSelect"
         style={{
