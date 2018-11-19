@@ -9,7 +9,8 @@ import 'katex/dist/katex.min.css';
 import { FaReply } from 'react-icons/fa';
 import { FaShare } from 'react-icons/fa';
 import { FaSyncAlt } from 'react-icons/fa';
-import { FaPlayCircle } from 'react-icons/fa';
+import { FaAngleDown } from 'react-icons/fa';
+import { toJS } from 'mobx';
 
 @inject(({ state }, props) => {
   return {
@@ -20,6 +21,7 @@ import { FaPlayCircle } from 'react-icons/fa';
     keyChange: state.keyChange,
     editor: state.editor,
     editorValue: state.activeTextFile.text,
+    updateActiveText: state.updateActiveText,
     activeTextFileHandWritingFormulaAreas:
       state.textFile[props.textfilenum].handWritingFormulaAreas,
     updateHandWritingFormulaAreaCode: state.updateHandWritingFormulaAreaCode,
@@ -31,7 +33,17 @@ import { FaPlayCircle } from 'react-icons/fa';
     resultVariable:
       state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
         .resultVariable,
-    activeTextFileType: state.textFile[props.textfilenum].type
+    handWritingFormulaAreasCode:
+      state.textFile[props.textfilenum].handWritingFormulaAreas[props.num].code,
+    activeTextFileType: state.textFile[props.textfilenum].type,
+    activeTextFile: state.textFile[props.textfilenum],
+    updateHandWritingFormulaAreaAnchor:
+      state.updateHandWritingFormulaAreaAnchor,
+    updateHandWritingFormulaAreaVisible:
+      state.updateHandWritingFormulaAreaVisible,
+    activeTextFileHandWritingFormulaAreaBackgroundWord:
+      state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
+        .backgroundWord
   };
 })
 @observer
@@ -253,16 +265,62 @@ export default class HandWritingFormulaArea extends React.Component {
       .replace(new RegExp('(align.{1})', 'g'), 'aligned');
   };
   handleDelete = () => {
-    const editor = this.props.editor;
-    const searchWord = this.props.editorValue.match(
-      new RegExp(`/\\*${this.props.num}\\*/[\\n\\s]*`)
-    )[0];
-    editor.$search.setOptions({
+    const editorValue = this.props.editorValue;
+    const searchWord = this.props
+      .activeTextFileHandWritingFormulaAreaBackgroundWord;
+    this.props.editor.$search.setOptions({
       needle: searchWord,
       regExp: false
     });
-    const range = editor.$search.find(editor.session);
-    editor.session.replace(range, '');
+    const range = this.props.editor.$search.find(this.props.editor.session);
+    if (range) {
+      this.props.updateActiveText(
+        editorValue.replace(
+          this.props.activeTextFileHandWritingFormulaAreaBackgroundWord,
+          ''
+        )
+      );
+    } else {
+      this.props.updateActiveText(
+        editorValue.replace(`/*${this.props.num}*/`, '')
+      );
+    }
+    setTimeout(() => {
+      this.props.activeTextFile.handWritingFormulaAreas.forEach((f, j) => {
+        const searchWord = `/*${j}*/`;
+        this.props.editor.$search.setOptions({
+          needle: searchWord,
+          regExp: false
+        });
+        const range = this.props.editor.$search.find(this.props.editor.session);
+        if (range) {
+          const position = this.props.editor.renderer.textToScreenCoordinates(
+            range.start
+          );
+          if (
+            position.pageY + f.height > 0 &&
+            position.pageY < window.innerHeight
+          ) {
+            this.props.updateHandWritingFormulaAreaAnchor(
+              j,
+              position.pageX,
+              position.pageY
+            );
+            this.props.updateHandWritingFormulaAreaVisible(
+              this.props.textfilenum,
+              j,
+              true
+            );
+          }
+        } else {
+          this.props.updateHandWritingFormulaAreaVisible(
+            this.props.textfilenum,
+            j,
+            false
+          );
+        }
+      });
+    }, 10);
   };
   handleConvert = () => {
     this.editor.convert();
@@ -276,11 +334,72 @@ export default class HandWritingFormulaArea extends React.Component {
   handleRedo = () => {
     this.editor.redo();
   };
-  handleAutoConvert = () => {
-    const bool = this.state.autoConvert;
-    this.setState({
-      autoConvert: !bool
+  // handleAutoConvert = () => {
+  //   const bool = this.state.autoConvert;
+  //   this.setState({
+  //     autoConvert: !bool
+  //   });
+  // };
+  handleInsertCode = () => {
+    const editorValue = this.props.editorValue;
+    const searchWord = this.props
+      .activeTextFileHandWritingFormulaAreaBackgroundWord;
+    this.props.editor.$search.setOptions({
+      needle: searchWord,
+      regExp: false
     });
+    const range = this.props.editor.$search.find(this.props.editor.session);
+    if (range) {
+      this.props.updateActiveText(
+        editorValue.replace(
+          this.props.activeTextFileHandWritingFormulaAreaBackgroundWord,
+          this.props.handWritingFormulaAreasCode
+        )
+      );
+    } else {
+      this.props.updateActiveText(
+        editorValue.replace(
+          `/*${this.props.num}*/`,
+          this.props.handWritingFormulaAreasCode
+        )
+      );
+    }
+    setTimeout(() => {
+      this.props.activeTextFile.handWritingFormulaAreas.forEach((f, j) => {
+        const searchWord = `/*${j}*/`;
+        this.props.editor.$search.setOptions({
+          needle: searchWord,
+          regExp: false
+        });
+        const range = this.props.editor.$search.find(this.props.editor.session);
+        if (range) {
+          const position = this.props.editor.renderer.textToScreenCoordinates(
+            range.start
+          );
+          if (
+            position.pageY + f.height > 0 &&
+            position.pageY < window.innerHeight
+          ) {
+            this.props.updateHandWritingFormulaAreaAnchor(
+              j,
+              position.pageX,
+              position.pageY
+            );
+            this.props.updateHandWritingFormulaAreaVisible(
+              this.props.textfilenum,
+              j,
+              true
+            );
+          }
+        } else {
+          this.props.updateHandWritingFormulaAreaVisible(
+            this.props.textfilenum,
+            j,
+            false
+          );
+        }
+      });
+    }, 10);
   };
   render() {
     return (
@@ -349,6 +468,15 @@ export default class HandWritingFormulaArea extends React.Component {
         >
           <FaPlayCircle />
         </button> */}
+        <button
+          touch-action="auto"
+          className="handWritingFormulaAreaButton"
+          id="insertCodeButton"
+          ref="insertCode"
+          onClick={this.handleInsertCode}
+        >
+          <FaAngleDown />
+        </button>
         <div
           id="handWritingFormulaEditor"
           ref="editor"

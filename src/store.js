@@ -38,6 +38,12 @@ class State {
     this.editorValue = text;
   }
   @observable
+  saveEvent = null;
+  @action.bound
+  updateSaveEvent(func) {
+    this.saveEvent = func;
+  }
+  @observable
   executeHTML = null;
   @action.bound
   updateExecuteHTML(func) {
@@ -48,6 +54,18 @@ class State {
   @action.bound
   updateRunButton(element) {
     this.runButton = element;
+  }
+  @observable
+  listButton = null;
+  @action.bound
+  updateListButton(element) {
+    this.listButton = element;
+  }
+  @observable
+  recycleButton = null;
+  @action.bound
+  updateRecycleButton(element) {
+    this.recycleButton = element;
   }
   @observable
   stopButton = null;
@@ -147,6 +165,12 @@ class State {
     this.runAreaRenderingFlag = bool;
   }
   @observable
+  listAreaRenderingFlag = false;
+  @action.bound
+  updateListAreaRenderingFlag(bool) {
+    this.listAreaRenderingFlag = bool;
+  }
+  @observable
   runAreaPosition = { x: window.innerWidth - 600, y: 100 };
   @action.bound
   updateRunAreaPosition(x, y) {
@@ -161,6 +185,24 @@ class State {
   @action.bound
   updateRunButtonColor(obj) {
     this.runButtonColor = obj;
+  }
+  @observable
+  listButtonColor = {
+    backgroundColor: '#eee',
+    fontColor: ' rgb(0, 185, 158)'
+  };
+  @action.bound
+  updateListButtonColor(obj) {
+    this.listButtonColor = obj;
+  }
+  @observable
+  recycleButtonColor = {
+    backgroundColor: '#eee',
+    fontColor: ' rgb(0, 185, 158)'
+  };
+  @action.bound
+  updateRecycleButtonColor(obj) {
+    this.recycleButtonColor = obj;
   }
   @action.bound
   pushHandWritingFormulaAreas(obj) {
@@ -217,6 +259,10 @@ class State {
   @action.bound
   updateHandWritingFormulaAreaResizeEvent(num, bool) {
     this.activeTextFile.handWritingFormulaAreas[num].resizeEvent = bool;
+  }
+  @action.bound
+  updateHandWritingFormulaAreaBackgroundWord(num, word) {
+    this.activeTextFile.handWritingFormulaAreas[num].backgroundWord = word;
   }
   @action.bound
   updateHandWritingFormulaAreaId(num) {

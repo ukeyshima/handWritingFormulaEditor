@@ -8,7 +8,8 @@ import { toJS } from 'mobx';
   editor: state.editor,
   textFile: state.textFile,
   activeTextFileHandWritingFormulaAreas:
-    state.activeTextFile.handWritingFormulaAreas
+    state.activeTextFile.handWritingFormulaAreas,
+  updateSaveEvent: state.updateSaveEvent
 }))
 @observer
 export default class SaveButton extends React.Component {
@@ -17,6 +18,9 @@ export default class SaveButton extends React.Component {
     this.state = {
       fontColor: '#000'
     };
+  }
+  componentDidMount() {
+    // this.props.updateSaveEvent(this.handleClick);
   }
   download = (data, type) => {
     const e = document.createEvent('MouseEvents');
@@ -50,6 +54,7 @@ export default class SaveButton extends React.Component {
     a.dataset.downloadurl = ['text/plain', a.download, a.href].join(':');
     a.dispatchEvent(e);
   };
+
   handleClick = () => {
     let data = this.props.editor.getValue();
     if (this.props.activeTextFileFileName === 'index.html') {

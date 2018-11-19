@@ -29,7 +29,7 @@ module.exports = {
         loader: ['style-loader', 'css-loader', 'sass-loader']
       },
       {
-        test: /\.(ttf|svg|otf|jpg|png)$/,
+        test: /\.(svg|otf|jpg|png|ttf|woff2?)$/,
         loader: 'url-loader'
       },
       {
@@ -39,10 +39,6 @@ module.exports = {
       {
         test: /\.json$/,
         loader: 'json-loader'
-      },
-      {
-        test: /\.(ttf|woff2?)$/,
-        loader: 'file-loader'
       },
       {
         test: /\.(txt)$/,

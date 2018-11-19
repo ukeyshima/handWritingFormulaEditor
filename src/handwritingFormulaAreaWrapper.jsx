@@ -4,7 +4,6 @@ import { inject, observer } from 'mobx-react';
 import { FaExchangeAlt } from 'react-icons/fa';
 import HandWritingFormulaArea from './handWritingFormulaArea.jsx';
 import HandWritingExchange from './handWritingExchange.jsx';
-import { toJS } from 'mobx';
 
 @inject(({ state }, props) => {
   return {
@@ -12,6 +11,9 @@ import { toJS } from 'mobx';
     activeTextFileHandWritingFormulaAreaHandWritingFormulaEditor:
       state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
         .handWritingFormulaEditor,
+    activeTextFileHandWritingFormulaAreaBackgroundWord:
+      state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
+        .backgroundWord,
     activeTextFileHandWritingFormulaAreaCodeEditor:
       state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
         .codeEditor,
@@ -31,7 +33,13 @@ import { toJS } from 'mobx';
         .width,
     handWritingFormulaAreaHeight:
       state.textFile[props.textfilenum].handWritingFormulaAreas[props.num]
-        .height
+        .height,
+    handWritingFormulaAreaAnchorX:
+      state.textFile[props.textfilenum].handWritingFormulaAreas[props.num].x,
+    handWritingFormulaAreaAnchorY:
+      state.textFile[props.textfilenum].handWritingFormulaAreas[props.num].y,
+    updateHandWritingFormulaAreaBackgroundWord:
+      state.updateHandWritingFormulaAreaBackgroundWord
   };
 })
 @observer
@@ -51,6 +59,8 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
     this.props.updateHandWritingFormulaAreaExchange(this.props.num, !bool);
   };
   handleMouseAndTouchDownResize = e => {
+    e.preventDefault();
+    this.props.editor.blur();
     this.props.updateHandWritingFormulaAreaResizeEvent(this.props.num, true);
     document.body.addEventListener(
       'mousemove',
@@ -65,62 +75,56 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
       'touchend',
       this.handleMouseAndTouchUpResize
     );
-    this.startX = e.pageX
-      ? e.pageX
-      : e.touches
-        ? e.touches[0].pageX
-        : e.changedTouches[0].pageX;
-    this.startY = e.pageY
-      ? e.pageY
-      : e.touches
-        ? e.touches[0].pageY
-        : e.changedTouches[0].pageY;
-    this.startWidth = this.props.handWritingFormulaAreaWidth;
-    this.startHeight = this.props.handWritingFormulaAreaHeight;
-
     const editor = this.props.editor;
-    const prevEndRange = editor.renderer.pixelToScreenCoordinates(
-      this.startX,
-      this.startY
-    );
+    const searchWord = this.props
+      .activeTextFileHandWritingFormulaAreaBackgroundWord;
+    editor.$search.setOptions({ needle: searchWord, regExp: false });
+    const range = editor.$search.find(editor.session);
     this.setState({
-      prevEndRangeRow: prevEndRange.row,
-      prevEndRangeColumn: prevEndRange.column
+      prevEndRangeRow: range.end.row,
+      prevEndRangeColumn: range.end.column
     });
   };
   handleMouseAndTouchMoveResize = e => {
-    const x = e.pageX
-      ? e.pageX
-      : e.touches
+    if (e.buttons === 0) {
+      this.handleMouseAndTouchUpResize(e);
+    } else {
+      e.preventDefault();
+      const x = e.pageX
+        ? e.pageX
+        : e.touches
         ? e.touches[0].pageX
         : e.changedTouches[0].pageX;
-    const y = e.pageY
-      ? e.pageY
-      : e.touches
+      const y = e.pageY
+        ? e.pageY
+        : e.touches
         ? e.touches[0].pageY
         : e.changedTouches[0].pageY;
-    if (
-      this.startWidth + x - this.startX > 250 &&
-      this.startHeight + y - this.startY > 150
-    ) {
-      this.props.updateHandWritingFormulaAreaSize(
-        this.props.num,
-        this.startWidth + x - this.startX,
-        this.startHeight + y - this.startY
-      );
+      if (y - this.props.handWritingFormulaAreaAnchorY > 150) {
+        this.props.updateHandWritingFormulaAreaSize(
+          this.props.num,
+          this.props.handWritingFormulaAreaWidth,
+          y - this.props.handWritingFormulaAreaAnchorY
+        );
+      }
+      if (x - this.props.handWritingFormulaAreaAnchorX > 280) {
+        this.props.updateHandWritingFormulaAreaSize(
+          this.props.num,
+          x - this.props.handWritingFormulaAreaAnchorX,
+          this.props.handWritingFormulaAreaHeight
+        );
+      }
     }
   };
   handleMouseAndTouchUpResize = e => {
-    const x = e.pageX
-      ? e.pageX
-      : e.touches
-        ? e.touches[0].pageX
-        : e.changedTouches[0].pageX;
-    const y = e.pageY
-      ? e.pageY
-      : e.touches
-        ? e.touches[0].pageY
-        : e.changedTouches[0].pageY;
+    e.preventDefault();
+    const x =
+      this.props.handWritingFormulaAreaAnchorX +
+      this.props.handWritingFormulaAreaWidth;
+    const y =
+      this.props.handWritingFormulaAreaAnchorY +
+      this.props.handWritingFormulaAreaHeight;
+
     const editor = this.props.editor;
     const searchWord = `/*${this.props.num}*/`;
     editor.$search.setOptions({ needle: searchWord, regExp: false });
@@ -129,7 +133,21 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
       row: this.state.prevEndRangeRow,
       column: this.state.prevEndRangeColumn
     };
-    const currentEndRange = editor.renderer.pixelToScreenCoordinates(x, y);
+    const currentEndRange = { column: 0, row: 0 };
+    currentEndRange.column =
+      x - this.props.handWritingFormulaAreaAnchorX > 280
+        ? editor.renderer.pixelToScreenCoordinates(x, y).column
+        : editor.renderer.pixelToScreenCoordinates(
+            this.props.handWritingFormulaAreaAnchorX + 280,
+            y
+          ).column;
+    currentEndRange.row =
+      y - this.props.handWritingFormulaAreaAnchorY > 150
+        ? editor.renderer.pixelToScreenCoordinates(x, y).row
+        : editor.renderer.pixelToScreenCoordinates(
+            x,
+            this.props.handWritingFormulaAreaAnchorY + 150
+          ).row;
     let insertText = `/*${this.props.num}*/`;
     const num = currentEndRange.column - startRange.column - insertText.length;
     for (let i = 0; i < num; i++) {
@@ -151,15 +169,16 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
         column: prevEndRange.column
       }
     });
-    console.log(text);
-    let minusText = '';
-    for (let i = searchWord.length; i < text.length; i++) {
-      let character = text[i];
-      if (character !== '\x20' && character !== '\n') {
-        minusText = text.slice(i, text.length);
+    const splitText = text.split('\n');
+    for (let i = 0; i < splitText.length; i++) {
+      if (splitText[i].indexOf(searchWord) === -1) {
+        if (!/^[\n\s]+$/.test(splitText[i])) {
+          prevEndRange.row -= splitText.length - i;
+          prevEndRange.column = 0;
+          break;
+        }
       }
     }
-
     editor.session.replace(
       {
         start: {
@@ -168,16 +187,19 @@ export default class HandWritingFormulaAreaWrapper extends React.Component {
         },
         end: {
           row: prevEndRange.row,
-          column: prevEndRange.column - minusText.length
+          column: prevEndRange.column
         }
       },
+      insertText
+    );
+    this.props.updateHandWritingFormulaAreaBackgroundWord(
+      this.props.num,
       insertText
     );
     this.props.activeTextFileHandWritingFormulaAreaHandWritingFormulaEditor.resize();
     if (this.props.handWritingFormulaAreaExchange) {
       this.props.activeTextFileHandWritingFormulaAreaCodeEditor.resize();
     }
-
     this.props.updateHandWritingFormulaAreaResizeEvent(this.props.num, false);
     document.body.removeEventListener(
       'mousemove',

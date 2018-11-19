@@ -42,17 +42,19 @@ export default class RunArea extends React.Component {
           const targetOfJs = textFile.find(f => {
             return f.fileName === fileName;
           });
-          const id = targetOfJs.handWritingFormulaAreaId;
-          const areas = targetOfJs.handWritingFormulaAreas;
-          let resultText = targetOfJs.text;
-          for (let i = 0; i < id; i++) {
-            resultText = resultText.replace(`/*${i}*/`, areas[i].code);
+          if (targetOfJs) {
+            const id = targetOfJs.handWritingFormulaAreaId;
+            const areas = targetOfJs.handWritingFormulaAreas;
+            let resultText = targetOfJs.text;
+            for (let i = 0; i < id; i++) {
+              resultText = resultText.replace(`/*${i}*/`, areas[i].code);
+            }
+            console.log(resultText);
+            const blob = new Blob([resultText], {
+              type: 'application/javascript'
+            });
+            e.src = URL.createObjectURL(blob);
           }
-          console.log(resultText);
-          const blob = new Blob([resultText], {
-            type: 'application/javascript'
-          });
-          e.src = URL.createObjectURL(blob);
         } else {
           const targetOfNotJs = textFile.find(f => {
             return f.fileName === e.type;

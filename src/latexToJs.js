@@ -25,7 +25,7 @@ let latex2js,
   dot,
   matrixMultiplication,
   matrixOperations,
-  matrixShape,
+  matrixLeftRightShape,
   shape,
   nextMulti,
   codeSearch,
@@ -34,6 +34,9 @@ let latex2js,
   vecShape;
 
 splitCodeClose = splitCode => {
+  if (/=[\n\s]*$/.test(splitCode)) {
+    splitCode += "''";
+  }
   if (splitCode.split('{').length > splitCode.split('}').length) {
     splitCode =
       splitCode +
@@ -92,6 +95,7 @@ splitCodeClose = splitCode => {
       })()}` + splitCode
     );
   }
+
   return splitCode;
 };
 codeSearch = (code, variable) => {
@@ -221,8 +225,8 @@ radix = input => {
   return input.index
     ? `Math.pow(${shape(input.body)},1/${shape(input.index.body)})`
     : input.body.body[0].type === 'leftright'
-      ? `Math.sqrt${shape(input.body.body)}`
-      : `Math.sqrt(${shape(input.body.body)})`;
+    ? `Math.sqrt${shape(input.body.body)}`
+    : `Math.sqrt(${shape(input.body.body)})`;
 };
 
 frac = input => {
@@ -258,14 +262,29 @@ tan = input => {
 };
 
 leftright = input => {
-  let left = '(';
-  let right = ')';
   if (input.left === '[' && input.right === ']') {
-    left = 'Math.floor(';
+    return `Math.floor(${shape(input.body)})`;
   } else if (input.left === '|' && input.right === '|') {
-    left = 'Math.abs(';
+    if (
+      input.body[0].type === 'leftright' &&
+      input.body[0].body[0].type === 'array'
+    ) {
+      return `[${matrix(input.body[0])}].reduce((pre,cur)=>{
+        return pre+Math.pow(cur,2)
+      },0)`;
+    } else if (
+      input.body[0].type === 'accent' &&
+      (input.body[0].label === '\\vec' ||
+        input.body[0].label === '\\overrightarrow')
+    ) {
+      return `${shape(input.body[0])}.reduce((pre,cur)=>{
+        return pre+Math.pow(cur,2)
+      },0)`;
+    } else {
+      return `Math.abs(${shape(input.body)})`;
+    }
   }
-  return `${left}${shape(input.body)}${right}`;
+  return `(${shape(input.body)})`;
 };
 
 naturalLog = input => {
@@ -336,6 +355,9 @@ limit = input => {
 };
 
 matrix = input => {
+  if (!input) {
+    return [];
+  }
   if (!input.hasOwnProperty('type')) {
     return input;
   }
@@ -359,7 +381,22 @@ dot = (input1, input2) => {
 };
 
 matrixMultiplication = (array, input) => {
-  input = [matrix(input)];
+  if (
+    input.type === 'accent' &&
+    (input.label === '\\vec' || input.label === '\\overrightarrow')
+  ) {
+    input = [
+      (() => {
+        const o = [];
+        for (let i = 0; i < array.length; i++) {
+          o.push([`${shape(input.base.body)}[${i}]`]);
+        }
+        return o;
+      })()
+    ];
+  } else {
+    input = [matrix(input)];
+  }
   input.unshift(array);
   return (() => {
     if (!Array.isArray(input[0])) {
@@ -376,15 +413,16 @@ matrixMultiplication = (array, input) => {
         const o = [];
         input[0].forEach((e, j) => {
           const q = [];
-          e.some((f, k) => {
+          for (let i = 0; i < input[1][0].length; i++) {
             let r = '';
-            for (let i = 0; i < e.length; i++) {
-              r += `+${e[i]}*${input[1][i][k]}`;
-            }
+            let k = 0;
+            e.forEach((f, l) => {
+              r += `+${f}*${input[1][k][i]}`;
+              k++;
+            });
             r = '(' + r.slice(1, r.length) + ')';
             q.push(r);
-            if (k === input[1].length - 1) return true;
-          });
+          }
           o.push(q);
         });
         return o;
@@ -395,15 +433,32 @@ matrixMultiplication = (array, input) => {
 
 matrixOperations = (array, input, operations) => {
   if (Array.isArray(array)) {
-    const o = [];
-    array.forEach((e, j) => {
-      const q = [];
-      e.forEach((f, k) => {
-        q.push(f + operations + input[j][k]);
+    if (
+      input.type === 'accent' &&
+      (input.label === '\\vec' || input.label === '\\overrightarrow')
+    ) {
+      const o = [];
+      array.forEach((f, i) => {
+        o.push(f + operations + `${shape(input.base.body)}[${i}]`);
       });
-      o.push(q);
-    });
-    return o;
+      return o;
+    } else if (Array.isArray(array[0])) {
+      const o = [];
+      array.forEach((e, j) => {
+        const q = [];
+        e.forEach((f, k) => {
+          q.push(f + operations + input[j][k]);
+        });
+        o.push(q);
+      });
+      return o;
+    } else {
+      const o = [];
+      array.forEach((f, i) => {
+        o.push(f + operations + input[i]);
+      });
+      return o;
+    }
   } else {
     return array + operations + input;
   }
@@ -413,6 +468,29 @@ const matrixCalculation = (array, input) => {
   let result = '';
   if (!input[0]) return array;
   switch (input[0].type) {
+    case 'accent':
+      const length = matrix(
+        input.find(e => {
+          return e.type === 'leftright' && e.body[0].type === 'array';
+        })
+      ).length;
+      result =
+        input.length > 1
+          ? matrixCalculation(
+              matrixMultiplication(
+                array,
+                (() => {
+                  const o = [];
+                  for (let i = 0; i < length; i++) {
+                    o.push([`${shape(input[0].base.body)}[${i}]`]);
+                  }
+                  return o;
+                })()
+              ),
+              input.slice(1, input.length)
+            )
+          : matrixMultiplication(array, input[0]);
+      break;
     case 'leftright':
       result =
         input.length > 1
@@ -448,30 +526,53 @@ const matrixCalculation = (array, input) => {
           result = (() => {
             let index =
               input.slice(1, input.length).findIndex(e => {
-                return !(e.type === 'leftright' && e.body[0].type === 'array');
+                return !(
+                  (e.type === 'leftright' && e.body[0].type === 'array') ||
+                  (e.type === 'accent' &&
+                    (e.label === '\\vec' || e.label === '\\overrightarrow'))
+                );
               }) + 1;
             index = index === 0 ? input.length : index;
             if (index === 2) {
               return input.length > 2
-                ? matrixCalculation(
-                    matrixOperations(array, matrix(input[1]), input[0].text),
-                    input.slice(2, input.length)
-                  )
-                : matrixOperations(array, matrix(input[1]), input[0].text);
+                ? (() => {
+                    return input[1].type === 'accent'
+                      ? matrixCalculation(
+                          matrixOperations(array, input[1], input[0].text),
+                          input.slice(2, input.length)
+                        )
+                      : matrixCalculation(
+                          matrixOperations(
+                            array,
+                            matrix(input[1]),
+                            input[0].text
+                          ),
+                          input.slice(2, input.length)
+                        );
+                  })()
+                : (() => {
+                    return input[1].type === 'accent'
+                      ? matrixOperations(array, input[1], input[0].text)
+                      : matrixOperations(
+                          array,
+                          matrix(input[1]),
+                          input[0].text
+                        );
+                  })();
             } else {
               return (() => {
                 return input.length > index
                   ? matrixCalculation(
                       matrixOperations(
                         array,
-                        matrixShape(input.slice(1, index)),
+                        matrixLeftRightShape(input.slice(1, index)),
                         input[0].text
                       ),
                       input.slice(index, input.length)
                     )
                   : matrixOperations(
                       array,
-                      matrixShape(input.slice(1, index)),
+                      matrixLeftRightShape(input.slice(1, index)),
                       input[0].text
                     );
               })();
@@ -486,11 +587,21 @@ const matrixCalculation = (array, input) => {
   return result;
 };
 
-matrixShape = input => {
+matrixLeftRightShape = input => {
+  if (
+    input.some(e => {
+      return e.type === 'atom' && e.text === '=';
+    })
+  ) {
+    return shape(input);
+  }
   const startIndex = input.findIndex(e => {
-    return e.type === 'leftright' && e.body[0].type === 'array';
+    return (
+      (e.type === 'leftright' && e.body[0].type === 'array') ||
+      (e.type === 'accent' &&
+        (e.label === '\\vec' || e.label === '\\overrightarrow'))
+    );
   });
-
   if (startIndex === -1) {
     return shape(input);
   } else {
@@ -498,12 +609,19 @@ matrixShape = input => {
       .slice(startIndex, input.length)
       .findIndex((e, i, a) => {
         return (
-          !(e.type === 'leftright' && e.body[0].type === 'array') &&
           !(
-            e.type === 'atom' &&
-            a[i + 1] &&
-            a[i + 1].type === 'leftright' &&
-            a[i + 1].body[0].type === 'array'
+            (e.type === 'leftright' && e.body[0].type === 'array') ||
+            (e.type === 'accent' &&
+              (e.label === '\\vec' || e.label === '\\overrightarrow'))
+          ) &&
+          !(
+            (e.type === 'atom' &&
+              (a[i + 1] &&
+                a[i + 1].type === 'leftright' &&
+                a[i + 1].body[0].type === 'array')) ||
+            (a[i + 1].type === 'accent' &&
+              (a[i + 1].label === '\\vec' ||
+                a[i + 1].label === '\\overrightarrow'))
           )
         );
       });
@@ -560,12 +678,15 @@ matrixShape = input => {
         input.slice(endIndex + startIndex, input.length).some(e => {
           return e.type === 'leftright' && e.body[0].type === 'array';
         })
-          ? matrixShape(input.slice(endIndex + startIndex, input.length))
+          ? matrixLeftRightShape(
+              input.slice(endIndex + startIndex, input.length)
+            )
           : shape(input.slice(endIndex + startIndex, input.length))
       }`;
     }
   }
 };
+
 vecShape = input => {
   let result = '';
   switch (input[0].type) {
@@ -575,6 +696,14 @@ vecShape = input => {
         return pre+cur*${shape(input[1].base.body)}[i];
       },0)${input.length > 2 ? vecShape(input.slice(2, input.length)) : ''}`;
       } else if (
+        input.length > 1 &&
+        input[1].type === 'leftright' &&
+        input[1].type === 'array'
+      ) {
+        result = `${shape(input[0].base.body)}.reduce((pre,cur,i)=>{
+          return pre+cur*${matrixLeftRightShape(input[1])}[i];
+        },0)${input.length > 2 ? vecShape(input.slice(2, input.length)) : ''}`;
+      } else if (
         input.length > 2 &&
         input[1].type === 'atom' &&
         input[1].text === '\\cdot' &&
@@ -582,6 +711,16 @@ vecShape = input => {
       ) {
         result = `${shape(input[0].base.body)}.reduce((pre,cur,i)=>{
         return pre+cur*${shape(input[2].base.body)}[i];
+      },0)${input.length > 3 ? vecShape(input.slice(3, input.length)) : ''}`;
+      } else if (
+        input.length > 2 &&
+        input[1].type === 'atom' &&
+        input[1].text === '\\cdot' &&
+        input[2].type === 'leftright' &&
+        input[2].type === 'array'
+      ) {
+        result = `${shape(input[0].base.body)}.reduce((pre,cur,i)=>{
+        return pre+cur*${matrixLeftRightShape(input[2])}[i];
       },0)${input.length > 3 ? vecShape(input.slice(3, input.length)) : ''}`;
       } else {
         result = `${shape(input[0].base.body)}${
@@ -708,42 +847,86 @@ shape = input => {
   }
   if (
     input.some(e => {
-      return e.type === 'leftright' && e.body[0].type === 'array';
-    })
-  ) {
-    return matrixShape(input);
-  } else if (
-    input.some(e => {
       return e.type === 'atom' && e.text === '=';
     })
   ) {
     const index = input.findIndex(e => {
       return e.type === 'atom' && e.text === '=';
     });
-    const arrayIndex = input.findIndex(e => {
+    const frontEqual =
+      input[0].type === 'accent' &&
+      (input[0].label === '\\vec' || input[0].label === '\\overrightarrow')
+        ? input[0].base.body
+        : input.slice(0, index);
+    const arrayIndex = frontEqual.findIndex(e => {
       return e.type === 'leftright' && e.left === '[' && e.right === ']';
     });
-    if (arrayIndex === -1) {
-      const variable = input.slice(0, index).reduce((pre, cur) => {
+    if (
+      frontEqual[frontEqual.length - 1].type === 'supsub' &&
+      frontEqual[frontEqual.length - 1].hasOwnProperty('base') &&
+      frontEqual[frontEqual.length - 1].hasOwnProperty('sub')
+    ) {
+      const variable =
+        frontEqual.slice(0, frontEqual.length - 1).reduce((pre, cur) => {
+          return pre + cur.text;
+        }, '') + shape(frontEqual[frontEqual.length - 1].base);
+      let array = `[${shape(frontEqual[frontEqual.length - 1].sub.body)}]`;
+      array = array.replace(/,/g, '][');
+      return codeSearchArray(code, variable)
+        ? `${variable}${array}=${shape(input.slice(index + 1, input.length))}`
+        : `${variable}${array}=${shape(input.slice(index + 1, input.length))}`;
+    } else if (
+      frontEqual[frontEqual.length - 1].type === 'leftright' &&
+      frontEqual[frontEqual.length - 1].left === '(' &&
+      frontEqual[frontEqual.length - 1].right === ')'
+    ) {
+      const variable = frontEqual
+        .slice(0, frontEqual.length - 1)
+        .reduce((pre, cur) => {
+          return pre + cur.text;
+        }, '');
+      return `function ${variable}(${shape(
+        frontEqual[frontEqual.length - 1].body
+      )}){
+        return ${shape(input.slice(index + 1, input.length))}
+      }`;
+    } else if (arrayIndex === -1) {
+      const variable = frontEqual.reduce((pre, cur) => {
         return pre + cur.text;
       }, '');
       return codeSearch(code, variable)
         ? `${variable}=${shape(input.slice(index + 1, input.length))}`
         : `let ${variable}=${shape(input.slice(index + 1, input.length))}`;
     } else {
-      const variable = input.slice(0, arrayIndex).reduce((pre, cur) => {
+      const variable = frontEqual.slice(0, arrayIndex).reduce((pre, cur) => {
         return pre + cur.text;
       }, '');
+      const array = frontEqual
+        .slice(arrayIndex, frontEqual.length)
+        .reduce((pre, cur) => {
+          if (
+            cur.type === 'leftright' &&
+            cur.left === '[' &&
+            cur.right === ']'
+          ) {
+            return `${pre}[${shape(cur.body)}]`;
+          } else {
+            return pre;
+          }
+        }, '');
       return codeSearchArray(code, variable)
-        ? `${variable}[${shape(input[arrayIndex].body)}]=${shape(
-            input.slice(index + 1, input.length)
-          )}`
-        : `const ${variable}=[];
-         ${variable}[${shape(input[arrayIndex].body)}]=${shape(
-            input.slice(index + 1, input.length)
-          )}`;
+        ? `${variable}${array}=${shape(input.slice(index + 1, input.length))}`
+        : `${variable}${array}=${shape(input.slice(index + 1, input.length))}`;
     }
-  } else if (
+  }
+  if (
+    input.some(e => {
+      return e.type === 'leftright' && e.body[0].type === 'array';
+    })
+  ) {
+    return matrixLeftRightShape(input);
+  }
+  if (
     input.some(e => {
       return (
         e.type === 'accent' &&
@@ -771,23 +954,34 @@ shape = input => {
     case 'mathord':
       result = (() => {
         if (input.length > 1) {
-          let index = input.findIndex(e => {
-            return e.type !== 'mathord' && e.type !== 'textord';
+          let index = input.findIndex((e, i, a) => {
+            return (
+              (e.type !== 'mathord' &&
+                e.type !== 'textord' &&
+                !(
+                  e.type == 'supsub' &&
+                  e.sub &&
+                  e.base &&
+                  (e.base.type === 'mathord' || e.base.type === 'textord')
+                )) ||
+              (i > 0 &&
+                a[i - 1].type == 'supsub' &&
+                a[i - 1].sub &&
+                a[i - 1].base &&
+                (a[i - 1].base.type === 'mathord' ||
+                  a[i - 1].base.type === 'textord'))
+            );
           });
           let variable = '';
           index = index === -1 ? input.length : index;
           for (let i = index; i > 0; i--) {
-            if (
-              codeSearch(
-                code,
-                input.slice(0, i).reduce((pre, cur) => {
-                  return pre + cur.text;
-                }, '')
-              )
-            ) {
-              variable = `${input.slice(0, i).reduce((pre, cur) => {
-                return pre + cur.text;
-              }, '')}${i < index ? '*' + shape(input.slice(i, index)) : ''}`;
+            const vari = input.slice(0, i).reduce((pre, cur) => {
+              return pre + (cur.type === 'supsub' ? cur.base.text : cur.text);
+            }, '');
+            if (codeSearch(code, vari)) {
+              variable = `${vari}${
+                i < index ? '*' + shape(input.slice(i, index)) : ''
+              }`;
               break;
             }
           }
@@ -832,9 +1026,35 @@ shape = input => {
                     : ``) + shape(input.slice(1, input.length))
             }`;
           } else if (input.length === index) {
-            return variable;
+            return input[input.length - 1].type === 'supsub' &&
+              input[input.length - 1].sub &&
+              input[input.length - 1].base &&
+              (input[input.length - 1].base.type === 'mathord' ||
+                input[input.length - 1].base.type === 'textord')
+              ? (() => {
+                  let array = `[${shape(input[input.length - 1].sub.body)}]`;
+                  array = array.replace(/,/g, '][');
+                  return codeSearchArray(code, variable)
+                    ? `${variable}`
+                    : `${variable}`;
+                })()
+              : variable;
           } else {
-            return `${variable}${
+            return `${
+              input[index - 1].type === 'supsub' &&
+              input[index - 1].sub &&
+              input[index - 1].base &&
+              (input[index - 1].base.type === 'mathord' ||
+                input[index - 1].base.type === 'textord')
+                ? (() => {
+                    let array = `[${shape(input[index - 1].sub.body)}]`;
+                    array = array.replace(/,/g, '][');
+                    return codeSearchArray(code, variable)
+                      ? `${variable}`
+                      : `${variable}`;
+                  })()
+                : variable
+            }${
               input[index].type === 'leftright' &&
               input[index].left === '[' &&
               input[index].right === ']'
@@ -927,7 +1147,7 @@ shape = input => {
       break;
     case 'array':
       input = input[0].body[0][0].body[0].body;
-      result = matrixShape(input);
+      result = matrixLeftRightShape(input);
       break;
     case 'genfrac':
       result = `${frac(input[0])}${nextMulti(input, 1)}`;

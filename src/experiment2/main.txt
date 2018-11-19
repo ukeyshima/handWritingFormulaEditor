@@ -1,0 +1,32 @@
+const canvas=document.getElementById("canvas");
+canvas.width=canvas.clientWidth;
+canvas.height=canvas.clientHeight;
+const context=canvas.getContext("2d");
+const w=canvas.width;
+const h=canvas.height;
+
+const targetS=10;
+const targetX=w-targetS;
+let targetY=0;
+let v=[0];
+const arcS=10;
+let arcX=0;
+let arcY=h;
+const g=9.8;
+const startT=new Date().getTime();
+const animation=()=>{
+    const t=(new Date().getTime()-startT)/1000;
+    context.fillStyle="#fff";
+    context.fillRect(0,0,w,h);
+    context.fillStyle="#f00";
+    context.fillRect(targetX,targetY,targetS,targetS);
+    targetY=v[0]*t+((1)/(2))*g*Math.pow(t,2);
+    context.fillStyle="#00f";
+    context.beginPath();
+    context.arc(arcX,arcY,arcS,0,Math.PI*2,false);
+    context.fill();
+    arcX=100*t;
+    arcY=h-100*t+((1)/(2))*g*Math.pow(t,2);
+    requestAnimationFrame(animation);
+}
+animation();

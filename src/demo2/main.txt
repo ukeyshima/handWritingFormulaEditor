@@ -2,6 +2,8 @@ const canvas=document.getElementById('canvas');
 canvas.width=canvas.clientWidth;
 canvas.height=canvas.clientHeight;
 const context=canvas.getContext('2d');
+const w=canvas.width;
+const h=canvas.height;
 
 context.fillStyle='#000';
 context.fillRect(0,0,canvas.width,canvas.height);
@@ -52,10 +54,13 @@ const o =(x,y) =>{
     }
     return v/m;
 }
-for(let x=0;x<1;x+=1/canvas.width){
-    for(let y=0;y<1;y+=1/canvas.height){
-        const brightness=Math.floor(o(x,y)*255);
+
+for(let x=0;x<w;x++){
+    for(let y=0;y<h;y++){
+        const norX=(2*x-w)/w;
+        const norY=(2*y-h)/h;
+        const brightness=Math.floor(p(norX,norY)*255);
         context.fillStyle=`rgb(${brightness},${brightness},${brightness})`;
-        context.fillRect(x*canvas.width,y*canvas.height,x*canvas.width+1,y*canvas.height+1);
+        context.fillRect(x,y,1,1);
     }
 }

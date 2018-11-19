@@ -56,6 +56,7 @@ export default class CreateHandWritingFormulaArea extends React.Component {
         height: this.height,
         x: startPosition.pageX,
         y: startPosition.pageY,
+        backgroundWord: word,
         visible: true,
         code: '',
         exchange: false,
@@ -83,7 +84,7 @@ export default class CreateHandWritingFormulaArea extends React.Component {
   render() {
     return (
       <button
-      touch-action="auto"
+        touch-action="auto"
         style={{
           backgroundColor: this.state.backgroundColor,
           color: this.state.fontColor

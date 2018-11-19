@@ -25,7 +25,8 @@ import 'brace/snippets/css.js';
   activeTextFileType: state.activeTextFile.type,
   activeTextFileId: state.activeTextFileId,
   updateActiveUndoStack: state.updateActiveUndoStack,
-  updateActiveRedoStack: state.updateActiveRedoStack
+  updateActiveRedoStack: state.updateActiveRedoStack,
+  saveEvent: state.saveEvent
 }))
 @observer
 export default class Editor extends React.Component {
@@ -56,6 +57,8 @@ export default class Editor extends React.Component {
       bindKey: { win: 'Ctrl+s', mac: 'Command+s' },
       exec: () => {
         try {
+          console.log('saveEvent');
+          this.props.saveEvent();
         } catch (e) {
           console.log(e);
         }
@@ -81,7 +84,7 @@ export default class Editor extends React.Component {
             );
             if (
               position.pageY + f.height > 0 &&
-              position.pageY < window.innerHeight
+              position.pageY < window.innerHeight + 100
             ) {
               this.props.updateHandWritingFormulaAreaAnchor(
                 j,
@@ -90,7 +93,7 @@ export default class Editor extends React.Component {
               );
               this.props.updateHandWritingFormulaAreaVisible(i, j, true);
             } else {
-              this.props.updateHandWritingFormulaAreaVisible(i, j, false);
+              //   this.props.updateHandWritingFormulaAreaVisible(i, j, false);
             }
           } else {
             if (f.resizeEvent) {
@@ -123,7 +126,7 @@ export default class Editor extends React.Component {
             );
             if (
               position.pageY + f.height > 0 &&
-              position.pageY < window.innerHeight
+              position.pageY < window.innerHeight + 100
             ) {
               this.props.updateHandWritingFormulaAreaAnchor(
                 j,
@@ -132,7 +135,7 @@ export default class Editor extends React.Component {
               );
               this.props.updateHandWritingFormulaAreaVisible(i, j, true);
             } else {
-              this.props.updateHandWritingFormulaAreaVisible(i, j, false);
+              // this.props.updateHandWritingFormulaAreaVisible(i, j, false);
             }
           } else {
             this.props.updateHandWritingFormulaAreaVisible(i, j, false);

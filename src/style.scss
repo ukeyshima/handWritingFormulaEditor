@@ -225,7 +225,10 @@ $buttonWidth: 30px;
 #convertButton {
   right: calc(#{$buttonWidth} * 2 + 21px);
 }
-#autoConvertButton {
+// #autoConvertButton {
+//   right: calc(#{$buttonWidth} * 1 + 11px);
+// }
+#insertCodeButton {
   right: calc(#{$buttonWidth} * 1 + 11px);
 }
 #exchangeButton {
