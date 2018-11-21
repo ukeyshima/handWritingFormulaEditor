@@ -8,6 +8,7 @@ import DemoButton3 from './demoButton3.jsx';
 import DemoButton4 from './demoButton4.jsx';
 import ExperimentButton from './experimentButton.jsx';
 import ExperimentButton2 from './experimentButton2.jsx';
+import NormalButton from './normalButton.jsx';
 import { inject, observer } from 'mobx-react';
 
 @inject('state')
@@ -34,6 +35,7 @@ export default class ModeSelect extends React.Component {
         <DemoButton4 />
         <ExperimentButton />
         <ExperimentButton2 />
+        <NormalButton />
       </div>
     );
   }

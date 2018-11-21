@@ -31,7 +31,8 @@ let latex2js,
   codeSearch,
   codeSearchArray,
   splitCodeClose,
-  vecShape;
+  vecShape,
+  isVector;
 
 splitCodeClose = splitCode => {
   if (/=[\n\s]*$/.test(splitCode)) {
@@ -229,8 +230,74 @@ radix = input => {
     : `Math.sqrt(${shape(input.body.body)})`;
 };
 
+isVector = input => {
+  let variable = [];
+  const variableArray = [];
+  const isVectorShape = input => {
+    if (input.length === 0) return;
+    if (Array.isArray(input[0])) {
+      input.forEach(e => {
+        isVectorShape(e);
+      });
+      return;
+    }
+    switch (input[0].type) {
+      case 'accent':
+        const vari = shape(input[0].base.body);
+        variableArray.push(vari);
+        if (input.length > 1) {
+          isVectorShape(input.slice(1, input.length));
+        }
+        break;
+      case 'mathord':
+        const vars = [];
+        let index = 0;
+        for (let i = 0; i < input.length; i++) {
+          if (input[i].type === 'mathord' || input[i].type === 'textord') {
+            vars.push(input[i]);
+            index++;
+          } else {
+            break;
+          }
+        }
+        const varia = shape(vars).split('*');
+        variable = variable.concat(varia);
+        if (input.length > 1) {
+          isVectorShape(input.slice(index, input.length));
+        }
+        break;
+      default:
+        if (input[0].hasOwnProperty('body')) {
+          isVectorShape(input[0].body);
+        }
+        if (input.length > 1) {
+          isVectorShape(input.slice(1, input.length));
+        } else {
+          return;
+        }
+        break;
+    }
+  };
+  isVectorShape(input);
+  let str = '';
+  variable.forEach(e => {
+    str += `const ${e}=0;`;
+  });
+  variableArray.forEach(e => {
+    str += `const ${e}=[];`;
+  });
+  str += shape(input);
+  return Array.isArray(eval(str));
+};
+
 frac = input => {
-  return `((${shape(input.numer.body)})/(${shape(input.denom.body)}))`;
+  if (isVector(input.numer.body)) {
+    return `${shape(input.numer.body)}.map(e=>{
+      return e/(${shape(input.denom.body)});
+    })`;
+  } else {
+    return `((${shape(input.numer.body)})/(${shape(input.denom.body)}))`;
+  }
 };
 
 pow = input => {
@@ -262,29 +329,27 @@ tan = input => {
 };
 
 leftright = input => {
-  if (input.left === '[' && input.right === ']') {
-    return `Math.floor(${shape(input.body)})`;
-  } else if (input.left === '|' && input.right === '|') {
-    if (
-      input.body[0].type === 'leftright' &&
-      input.body[0].body[0].type === 'array'
-    ) {
-      return `[${matrix(input.body[0])}].reduce((pre,cur)=>{
-        return pre+Math.pow(cur,2)
-      },0)`;
-    } else if (
-      input.body[0].type === 'accent' &&
-      (input.body[0].label === '\\vec' ||
-        input.body[0].label === '\\overrightarrow')
-    ) {
-      return `${shape(input.body[0])}.reduce((pre,cur)=>{
-        return pre+Math.pow(cur,2)
-      },0)`;
+  if (input[0].left === '[' && input[0].right === ']') {
+    return `Math.floor(${shape(input[0].body)})${nextMulti(input, 1)}`;
+  } else if (input[0].left === '|' && input[0].right === '|') {
+    if (isVector(input[0].body)) {
+      return `${shape(input[0].body)}.reduce((pre,cur)=>{
+        return pre+Math.pow(cur,2);
+      },0)${nextMulti(input, 1)}`;
     } else {
-      return `Math.abs(${shape(input.body)})`;
+      return `Math.abs(${shape(input[0].body)})${nextMulti(input, 1)}`;
     }
+  } else {
+    return isVector(input.slice(1, input.length))
+      ? isVector([input[0]])
+        ? `${shape(input[0])}.reduce((pre,cur,num)=>{
+        return pre+cur*${shape(input.slice(1, input.length))}[num];
+      },0)`
+        : `${shape(input.slice(1, input.length))}.map(e=>{
+      return e*(${shape(input[0].body)});
+    };`
+      : `(${shape(input[0].body)})${nextMulti(input, 1)}`;
   }
-  return `(${shape(input.body)})`;
 };
 
 naturalLog = input => {
@@ -400,11 +465,15 @@ matrixMultiplication = (array, input) => {
   input.unshift(array);
   return (() => {
     if (!Array.isArray(input[0])) {
-      if (array === '') return input[1];
+      if (input[0] === '') return input[1];
       return input[1].map(e => {
-        return e.map(f => {
-          return `(${input[0]}*${f})`;
-        });
+        if (Array.isArray(e)) {
+          return e.map(f => {
+            return `(${input[0]}*${f})`;
+          });
+        } else {
+          return `(${input[0]}*${e})`;
+        }
       });
     } else if (input[0][0].length === 1 && input[1][0].length === 1) {
       return dot(input[0], input[1]);
@@ -466,7 +535,7 @@ matrixOperations = (array, input, operations) => {
 
 const matrixCalculation = (array, input) => {
   let result = '';
-  if (!input[0]) return array;
+  if (input.length === 0) return array;
   switch (input[0].type) {
     case 'accent':
       const length = matrix(
@@ -524,15 +593,10 @@ const matrixCalculation = (array, input) => {
           break;
         default:
           result = (() => {
-            let index =
-              input.slice(1, input.length).findIndex(e => {
-                return !(
-                  (e.type === 'leftright' && e.body[0].type === 'array') ||
-                  (e.type === 'accent' &&
-                    (e.label === '\\vec' || e.label === '\\overrightarrow'))
-                );
-              }) + 1;
-            index = index === 0 ? input.length : index;
+            let index = input.slice(1, input.length).findIndex((e, i, a) => {
+              return e.type === 'atom' && e.text === '\\cdot';
+            });
+            index = index === -1 ? input.length : index;
             if (index === 2) {
               return input.length > 2
                 ? (() => {
@@ -565,14 +629,14 @@ const matrixCalculation = (array, input) => {
                   ? matrixCalculation(
                       matrixOperations(
                         array,
-                        matrixLeftRightShape(input.slice(1, index)),
+                        matrixCalculation(array, input.slice(1, index)),
                         input[0].text
                       ),
                       input.slice(index, input.length)
                     )
                   : matrixOperations(
                       array,
-                      matrixLeftRightShape(input.slice(1, index)),
+                      matrixCalculation(array, input.slice(1, index)),
                       input[0].text
                     );
               })();
@@ -582,6 +646,68 @@ const matrixCalculation = (array, input) => {
       }
       break;
     default:
+      let index2 = input.findIndex(e => {
+        return (
+          e.type === 'accent' &&
+          (e.label === '\\vec' || e.label === '\\overrightarrow')
+        );
+      });
+      if (index2 === -1) {
+        let index = input.findIndex(e => {
+          return e.type === 'leftright' && e.body[0].type === 'array';
+        });
+        result = matrixCalculation(
+          shape(input.slice(0, index)),
+          input.slice(index, input.length)
+        );
+      } else {
+        let index = input.slice(0, index2).findIndex(e => {
+          return e.type === 'leftright' && e.body[0].type === 'array';
+        });
+        if (index === -1) {
+          result = (() => {
+            if (Array.isArray(array)) {
+              return matrixCalculation(
+                matrixMultiplication(
+                  shape(input.slice(0, index2)),
+                  (() => {
+                    const o = [];
+                    for (let i = 0; i < array.length; i++) {
+                      o.push([`${shape(input[index2])}[${i}]`]);
+                    }
+                    return o;
+                  })()
+                ),
+                input.slice(index2 + 1, input.length)
+              );
+            } else {
+              const length = matrix(
+                input.find(e => {
+                  return e.type === 'leftright' && e.body[0].type === 'array';
+                })
+              ).length;
+              return matrixCalculation(
+                matrixMultiplication(
+                  shape(input.slice(0, index2)),
+                  (() => {
+                    const o = [];
+                    for (let i = 0; i < length; i++) {
+                      o.push([`${shape(input[index2])}[${i}]`]);
+                    }
+                    return o;
+                  })()
+                ),
+                input.slice(index2 + 1, input.length)
+              );
+            }
+          })();
+        } else {
+          result = matrixCalculation(
+            shape(input.slice(0, index)),
+            input.slice(index, input.length)
+          );
+        }
+      }
       break;
   }
   return result;
@@ -595,12 +721,22 @@ matrixLeftRightShape = input => {
   ) {
     return shape(input);
   }
-  const startIndex = input.findIndex(e => {
-    return (
-      (e.type === 'leftright' && e.body[0].type === 'array') ||
-      (e.type === 'accent' &&
-        (e.label === '\\vec' || e.label === '\\overrightarrow'))
-    );
+  const startIndex = input.findIndex((e, i, a) => {
+    let id = a.slice(i + 1, a.length).findIndex(f => {
+      return f.type === 'atom';
+    });
+    id = id === -1 ? a.length : id + i + 1;
+    if (
+      a.slice(i, id).some(g => {
+        return (
+          (g.type === 'leftright' && g.body[0].type === 'array') ||
+          (g.type === 'accent' &&
+            (g.label === '\\vec' || g.label === '\\overrightarrow'))
+        );
+      })
+    ) {
+      return true;
+    }
   });
   if (startIndex === -1) {
     return shape(input);
@@ -608,22 +744,25 @@ matrixLeftRightShape = input => {
     const endIndex = input
       .slice(startIndex, input.length)
       .findIndex((e, i, a) => {
-        return (
-          !(
-            (e.type === 'leftright' && e.body[0].type === 'array') ||
-            (e.type === 'accent' &&
-              (e.label === '\\vec' || e.label === '\\overrightarrow'))
-          ) &&
-          !(
-            (e.type === 'atom' &&
-              (a[i + 1] &&
-                a[i + 1].type === 'leftright' &&
-                a[i + 1].body[0].type === 'array')) ||
-            (a[i + 1].type === 'accent' &&
-              (a[i + 1].label === '\\vec' ||
-                a[i + 1].label === '\\overrightarrow'))
-          )
-        );
+        return !(() => {
+          let id = a.slice(i + 1, a.length).findIndex(f => {
+            return f.type === 'atom';
+          });
+          id = id === -1 ? a.length : id + i + 1;
+          if (
+            a.slice(i, id).some(g => {
+              return (
+                (g.type === 'leftright' && g.body[0].type === 'array') ||
+                (g.type === 'accent' &&
+                  (g.label === '\\vec' || g.label === '\\overrightarrow'))
+              );
+            })
+          ) {
+            return true;
+          }
+        })();
+        // e.type === 'atom' && !(e.text === '\\cdot' || e.text === '\\times')
+        // );
       });
     if (endIndex === -1) {
       return Array.isArray(
@@ -668,21 +807,21 @@ matrixLeftRightShape = input => {
           .find(e => {
             return e.type === 'atom';
           });
-        const index =
+        let index =
           input.slice(0, startIndex).findIndex(e => e === element) + 1;
         return `${shape(input.slice(0, index))}${matrixCalculation(
           shape(input.slice(index, startIndex)),
           input.slice(startIndex, endIndex + startIndex)
         )}`;
-      })()}${
-        input.slice(endIndex + startIndex, input.length).some(e => {
+      })()}${(() => {
+        return input.slice(endIndex + startIndex, input.length).some(e => {
           return e.type === 'leftright' && e.body[0].type === 'array';
         })
           ? matrixLeftRightShape(
               input.slice(endIndex + startIndex, input.length)
             )
-          : shape(input.slice(endIndex + startIndex, input.length))
-      }`;
+          : shape(input.slice(endIndex + startIndex, input.length));
+      })()}`;
     }
   }
 };
@@ -939,17 +1078,27 @@ shape = input => {
   if (!input[0]) return '';
   switch (input[0].type) {
     case 'textord':
-      result = `${input[0].text === '\\infty' ? Infinity : input[0].text}${
-        input.length > 1
-          ? (input[1].type !== 'textord' &&
+      result = (() => {
+        if (input.length > 1) {
+          if (isVector(input.slice(1, input.length))) {
+            return `${shape(input.slice(1, input.length))}.map(e=>{
+              return e*${input[0].text === '\\infty' ? Infinity : input[0].text}
+            })`;
+          } else {
+            return `${
+              input[0].text === '\\infty' ? Infinity : input[0].text
+            }${(input[1].type !== 'textord' &&
             input[1].type !== 'atom' &&
             input[1].type !== 'bin' &&
             input[1].type !== 'spacing' &&
             input[0].text !== '/'
               ? '*'
-              : '') + shape(input.slice(1, input.length))
-          : ``
-      }`;
+              : '') + shape(input.slice(1, input.length))}`;
+          }
+        } else {
+          return input[0].text === '\\infty' ? 'Infinity' : input[0].text;
+        }
+      })();
       break;
     case 'mathord':
       result = (() => {
@@ -986,36 +1135,50 @@ shape = input => {
             }
           }
           if (variable.length === 0) {
-            return `${input[0].text}${
-              input[1].type === 'leftright' &&
-              input[1].left === '[' &&
-              input[1].right === ']'
-                ? (() => {
-                    let index = input.slice(1, input.length).findIndex(e => {
-                      return !(
-                        e.type === 'leftright' &&
-                        e.left === '[' &&
-                        e.right === ']'
-                      );
+            return (() => {
+              if (
+                input[1].type === 'leftright' &&
+                input[1].left === '[' &&
+                input[1].right === ']'
+              ) {
+                return `${
+                  input[0].text === '\\pi' ? `Math.PI` : input[0].text
+                }${(() => {
+                  let index = input.slice(1, input.length).findIndex(e => {
+                    return !(
+                      e.type === 'leftright' &&
+                      e.left === '[' &&
+                      e.right === ']'
+                    );
+                  });
+                  index = index === -1 ? input.length - 1 : index;
+                  if (codeSearchArray(code, input[0].text)) {
+                    const array = input.slice(1, index + 1).map(e => {
+                      return `[${shape(e.body)}]`;
                     });
-                    index = index === -1 ? input.length - 1 : index;
-                    if (codeSearchArray(code, input[0].text)) {
-                      const array = input.slice(1, index + 1).map(e => {
-                        return `[${shape(e.body)}]`;
-                      });
-                      return `${array.reduce((pre, cur) => {
-                        return pre + cur;
-                      })}${nextMulti(input, index + 1)}`;
-                    } else {
-                      const array = input.slice(1, index + 1).map(e => {
-                        return `Math.floor(${shape(e.body)})`;
-                      });
-                      return `*${array.reduce((pre, cur) => {
-                        return pre + '*' + cur;
-                      })}${nextMulti(input, index + 1)}`;
+                    return `${array.reduce((pre, cur) => {
+                      return pre + cur;
+                    })}${nextMulti(input, index + 1)}`;
+                  } else {
+                    const array = input.slice(1, index + 1).map(e => {
+                      return `Math.floor(${shape(e.body)})`;
+                    });
+                    return `*${array.reduce((pre, cur) => {
+                      return pre + '*' + cur;
+                    })}${nextMulti(input, index + 1)}`;
+                  }
+                })()}`;
+              } else {
+                if (isVector(input.slice(1, input.length))) {
+                  return `${shape(input.slice(1, input.length))}.map(e=>{
+                    return e*${
+                      input[0].text === '\\pi' ? `Math.PI` : input[0].text
                     }
-                  })()
-                : (input[1].type !== 'atom' &&
+                  })`;
+                } else {
+                  return `${
+                    input[0].text === '\\pi' ? `Math.PI` : input[0].text
+                  }${(input[1].type !== 'atom' &&
                   input[1].type !== 'punct' &&
                   input[1].type !== 'bin' &&
                   input[1].type !== 'spacing' &&
@@ -1023,8 +1186,10 @@ shape = input => {
                     ? !codeSearch(code, input[0].text)
                     : true)
                     ? `*`
-                    : ``) + shape(input.slice(1, input.length))
-            }`;
+                    : ``) + shape(input.slice(1, input.length))}`;
+                }
+              }
+            })();
           } else if (input.length === index) {
             return input[input.length - 1].type === 'supsub' &&
               input[input.length - 1].sub &&
@@ -1040,57 +1205,93 @@ shape = input => {
                 })()
               : variable;
           } else {
-            return `${
-              input[index - 1].type === 'supsub' &&
-              input[index - 1].sub &&
-              input[index - 1].base &&
-              (input[index - 1].base.type === 'mathord' ||
-                input[index - 1].base.type === 'textord')
-                ? (() => {
-                    let array = `[${shape(input[index - 1].sub.body)}]`;
-                    array = array.replace(/,/g, '][');
-                    return codeSearchArray(code, variable)
-                      ? `${variable}`
-                      : `${variable}`;
-                  })()
-                : variable
-            }${
-              input[index].type === 'leftright' &&
-              input[index].left === '[' &&
-              input[index].right === ']'
-                ? (() => {
-                    let arrayIndex = input
-                      .slice(index, input.length)
-                      .findIndex(e => {
-                        return !(
-                          e.type === 'leftright' &&
-                          e.left === '[' &&
-                          e.right === ']'
-                        );
+            return (() => {
+              if (
+                input[index].type === 'leftright' &&
+                input[index].left === '[' &&
+                input[index].right === ']'
+              ) {
+                return `${
+                  input[index - 1].type === 'supsub' &&
+                  input[index - 1].sub &&
+                  input[index - 1].base &&
+                  (input[index - 1].base.type === 'mathord' ||
+                    input[index - 1].base.type === 'textord')
+                    ? (() => {
+                        let array = `[${shape(input[index - 1].sub.body)}]`;
+                        array = array.replace(/,/g, '][');
+                        return codeSearchArray(code, variable)
+                          ? `${variable}`
+                          : `${variable}`;
+                      })()
+                    : variable
+                }${(() => {
+                  let arrayIndex = input
+                    .slice(index, input.length)
+                    .findIndex(e => {
+                      return !(
+                        e.type === 'leftright' &&
+                        e.left === '[' &&
+                        e.right === ']'
+                      );
+                    });
+                  arrayIndex =
+                    arrayIndex === -1 ? input.length - 1 : arrayIndex;
+                  if (codeSearchArray(code, variable)) {
+                    const array = input
+                      .slice(index, index + arrayIndex)
+                      .map(e => {
+                        return `[${shape(e.body)}]`;
                       });
-                    arrayIndex =
-                      arrayIndex === -1 ? input.length - 1 : arrayIndex;
-                    if (codeSearchArray(code, variable)) {
-                      const array = input
-                        .slice(index, index + arrayIndex)
-                        .map(e => {
-                          return `[${shape(e.body)}]`;
-                        });
-                      return `${array.reduce((pre, cur) => {
-                        return pre + cur;
-                      })}${nextMulti(input, index + arrayIndex)}`;
-                    } else {
-                      const array = input
-                        .slice(index, index + arrayIndex)
-                        .map(e => {
-                          return `Math.floor(${shape(e.body)})`;
-                        });
-                      return `*${array.reduce((pre, cur) => {
-                        return pre + '*' + cur;
-                      })}${nextMulti(input, index + arrayIndex)}`;
-                    }
-                  })()
-                : (input[index].type !== 'atom' &&
+                    return `${array.reduce((pre, cur) => {
+                      return pre + cur;
+                    })}${nextMulti(input, index + arrayIndex)}`;
+                  } else {
+                    const array = input
+                      .slice(index, index + arrayIndex)
+                      .map(e => {
+                        return `Math.floor(${shape(e.body)})`;
+                      });
+                    return `*${array.reduce((pre, cur) => {
+                      return pre + '*' + cur;
+                    })}${nextMulti(input, index + arrayIndex)}`;
+                  }
+                })()}`;
+              } else {
+                if (isVector(input.slice(index, input.length))) {
+                  return `${shape(input.slice(index, input.length))}.map(e=>{
+                    return e*${
+                      input[index - 1].type === 'supsub' &&
+                      input[index - 1].sub &&
+                      input[index - 1].base &&
+                      (input[index - 1].base.type === 'mathord' ||
+                        input[index - 1].base.type === 'textord')
+                        ? (() => {
+                            let array = `[${shape(input[index - 1].sub.body)}]`;
+                            array = array.replace(/,/g, '][');
+                            return codeSearchArray(code, variable)
+                              ? `${variable}`
+                              : `${variable}`;
+                          })()
+                        : variable
+                    };
+                  })`;
+                } else {
+                  return `${
+                    input[index - 1].type === 'supsub' &&
+                    input[index - 1].sub &&
+                    input[index - 1].base &&
+                    (input[index - 1].base.type === 'mathord' ||
+                      input[index - 1].base.type === 'textord')
+                      ? (() => {
+                          let array = `[${shape(input[index - 1].sub.body)}]`;
+                          array = array.replace(/,/g, '][');
+                          return codeSearchArray(code, variable)
+                            ? `${variable}`
+                            : `${variable}`;
+                        })()
+                      : variable
+                  }${(input[index].type !== 'atom' &&
                   input[index].type !== 'punct' &&
                   input[index].type !== 'bin' &&
                   input[index].type !== 'spacing' &&
@@ -1098,8 +1299,10 @@ shape = input => {
                     ? !codeSearch(code, variable)
                     : true)
                     ? `*`
-                    : ``) + shape(input.slice(index, input.length))
-            }`;
+                    : ``) + shape(input.slice(index, input.length))}`;
+                }
+              }
+            })();
           }
         } else {
           return input[0].text === '\\pi' ? `Math.PI` : input[0].text;
@@ -1140,17 +1343,25 @@ shape = input => {
       result = `${shape(input[0].body)}${nextMulti(input, 1)}`;
       break;
     case 'sqrt':
-      result = `${radix(input[0])}${nextMulti(input, 1)}`;
+      result = isVector(input.slice(1, input.length))
+        ? `${shape(input.slice(1, input.length))}.map(e=>{
+        return e*${radix(input[0])}
+      })`
+        : `${radix(input[0])}${nextMulti(input, 1)}`;
       break;
     case 'leftright':
-      result = `${leftright(input[0])}${nextMulti(input, 1)}`;
+      result = leftright(input);
       break;
     case 'array':
       input = input[0].body[0][0].body[0].body;
       result = matrixLeftRightShape(input);
       break;
     case 'genfrac':
-      result = `${frac(input[0])}${nextMulti(input, 1)}`;
+      result = isVector(input.slice(1, input.length))
+        ? `${shape(input.slice(1, input.length))}.map(e=>{
+      return e*${frac(input[0])}
+    })`
+        : `${frac(input[0])}${nextMulti(input, 1)}`;
       break;
     case 'bin':
       switch (input[0].value) {
@@ -1165,25 +1376,42 @@ shape = input => {
     case 'op':
       switch (input[0].name) {
         case '\\sin':
-          result = `${sin(input[1])}${nextMulti(input, 2)}`;
+          result = isVector(input.slice(2, input.length))
+            ? `${shape(input.slice(2, input.length))}.map(e=>{
+          return e*${sin(input[1])}
+        })`
+            : `${sin(input[1])}${nextMulti(input, 2)}`;
           break;
         case '\\cos':
-          result = `${cos(input[1])}${nextMulti(input, 2)}`;
+          result = isVector(input.slice(2, input.length))
+            ? `${shape(input.slice(2, input.length))}.map(e=>{
+          return e*${cos(input[1])}
+        })`
+            : `${cos(input[1])}${nextMulti(input, 2)}`;
           break;
         case '\\tan':
-          result = `${tan(input[1])}${nextMulti(input, 2)}`;
+          result = isVector(input.slice(2, input.length))
+            ? `${shape(input.slice(2, input.length))}.map(e=>{
+          return e*${tan(input[1])}
+        })`
+            : `${tan(input[1])}${nextMulti(input, 2)}`;
           break;
         case '\\log':
-          result = `${naturalLog(input[1])}${nextMulti(input, 2)}`;
+          result = isVector(input.slice(2, input.length))
+            ? `${shape(input.slice(2, input.length))}.map(e=>{
+          return e*${naturalLog(input[1])}
+        })`
+            : `${naturalLog(input[1])}${nextMulti(input, 2)}`;
           break;
         case '\\int':
           const deltaIndex = input.findIndex(e => {
             return e.type === 'mathord' && e.text === 'd';
           });
-          result = `${indefiniteIntegral(input, deltaIndex)}${nextMulti(
-            input,
-            deltaIndex + 2
-          )}`;
+          result = isVector(input.slice(deltaIndex + 2, input.length))
+            ? `${shape(input.slice(deltaIndex + 2, input.length))}.map(e=>{
+          return e*${indefiniteIntegral(input, deltaIndex)}
+        })`
+            : `${indefiniteIntegral(input, deltaIndex)}${nextMulti(input, 2)}`;
           break;
         default:
           break;
@@ -1193,35 +1421,59 @@ shape = input => {
       if (input[0].sub) {
         switch (input[0].base.name) {
           case '\\log':
-            result = `${log(input)}${nextMulti(input, 2)}`;
+            result = isVector(input.slice(2, input.length))
+              ? `${shape(input.slice(2, input.length))}.map(e=>{
+          return e*${log(input)}
+        })`
+              : `${log(input)}${nextMulti(input, 2)}`;
             break;
           case '\\sum':
-            result = `${sum(input)}${nextMulti(input, 2)}`;
+            result = isVector(input.slice(2, input.length))
+              ? `${shape(input.slice(2, input.length))}.map(e=>{
+          return e*${sum(input)}
+        })`
+              : `${sum(input)}${nextMulti(input, 2)}`;
             break;
           case '\\int':
             const deltaIndex = input.findIndex(e => {
               return e.type === 'mathord' && e.text === 'd';
             });
-            result = `${definiteIntegral(input, deltaIndex)}${nextMulti(
-              input,
-              deltaIndex + 2
-            )}`;
+            result = isVector(input.slice(deltaIndex + 2, input.length))
+              ? `${shape(input.slice(deltaIndex + 2, input.length))}.map(e=>{
+          return e*${definiteIntegral(input, deltaIndex)}
+        })`
+              : `${definiteIntegral(input, deltaIndex)}${nextMulti(input, 2)}`;
             break;
           case '\\lim':
-            result = `${limit(input)}${nextMulti(input, 2)}`;
+            result = isVector(input.slice(2, input.length))
+              ? `${shape(input.slice(2, input.length))}.map(e=>{
+                return e*${limit(input)}
+              })`
+              : `${limit(input)}${nextMulti(input, 2)}`;
             break;
           default:
             let elementIndex = `[${shape(input[0].sub.body)}]`;
             elementIndex = elementIndex.replace(/,/g, '][');
-            result =
-              `${shape(input[0].base)}${elementIndex}` + nextMulti(input, 1);
+            result = isVector(input.slice(1, input.length))
+              ? `${shape(input.slice(1, input.length))}.map(e=>{
+                return e*${shape(input[0].base)}${elementIndex}
+              })`
+              : `${shape(input[0].base)}${elementIndex}${nextMulti(input, 1)}`;
             break;
         }
       } else {
         if (input[0].sup.body[0].text === '\\prime') {
-          result = `${differential(input[0])}${nextMulti(input, 1)}`;
+          result = isVector(input.slice(1, input.length))
+            ? `${shape(input.slice(1, input.length))}.map(e=>{
+                return e*${differential(input[0])}
+              })`
+            : `${differential(input[0])}${nextMulti(input, 1)}`;
         } else {
-          result = `${pow(input[0])}${nextMulti(input, 1)}`;
+          result = isVector(input.slice(1, input.length))
+            ? `${shape(input.slice(1, input.length))}.map(e=>{
+                return e*${pow(input[0])}
+              })`
+            : `${pow(input[0])}${nextMulti(input, 1)}`;
         }
       }
       break;
@@ -1238,5 +1490,6 @@ export default (latex2js = (input, program) => {
     input = input.replace(/\n/g, ' ');
   }
   const parseTree = katex.__parse(input);
+  console.log(parseTree);
   return shape(parseTree, code);
 });
