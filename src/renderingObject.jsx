@@ -4,7 +4,6 @@ import RunArea from './runArea.jsx';
 import ListArea from './listArea.jsx';
 import HandWritingFormulaAreaWrapper from './handwritingFormulaAreaWrapper.jsx';
 import { inject, observer } from 'mobx-react';
-import { toJS } from 'mobx';
 
 @inject(({ state }) => ({
   runAreaRenderingFlag: state.runAreaRenderingFlag,

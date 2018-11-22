@@ -67,7 +67,7 @@ splitCodeClose = splitCode => {
       })()}` + splitCode;
   }
   if (splitCode.split('(').length > splitCode.split(')').length) {
-    return (
+    splitCode =
       splitCode +
       `${(() => {
         let result = '';
@@ -79,10 +79,9 @@ splitCodeClose = splitCode => {
           result += ')';
         }
         return result;
-      })()}`
-    );
+      })()}`;
   } else if (splitCode.split('(').length < splitCode.split(')').length) {
-    return (
+    splitCode =
       `${(() => {
         let result = '';
         for (
@@ -93,10 +92,12 @@ splitCodeClose = splitCode => {
           result += '(';
         }
         return result;
-      })()}` + splitCode
-    );
+      })()}` + splitCode;
   }
-
+  if (/^[\s\n]*\([\s\S]*\)[\s\n\;]*$/.test(splitCode)) {
+    splitCode = splitCode.replace(/^[\s\n]*\(/, '');
+    splitCode = splitCode.replace(/\)[\s\n;]*$/, '');
+  }
   return splitCode;
 };
 codeSearch = (code, variable) => {
@@ -234,7 +235,11 @@ isVector = input => {
   let variable = [];
   const variableArray = [];
   const isVectorShape = input => {
+    if (!input) return;
     if (input.length === 0) return;
+    if (!Array.isArray(input)) {
+      input = [input];
+    }
     if (Array.isArray(input[0])) {
       input.forEach(e => {
         isVectorShape(e);
@@ -269,6 +274,21 @@ isVector = input => {
       default:
         if (input[0].hasOwnProperty('body')) {
           isVectorShape(input[0].body);
+        }
+        if (input[0].hasOwnProperty('base')) {
+          isVectorShape(input[0].base);
+        }
+        if (input[0].hasOwnProperty('sup')) {
+          isVectorShape(input[0].sup);
+        }
+        if (input[0].hasOwnProperty('sub')) {
+          isVectorShape(input[0].sub);
+        }
+        if (input[0].hasOwnProperty('denom')) {
+          isVectorShape(input[0].denom);
+        }
+        if (input[0].hasOwnProperty('numer')) {
+          isVectorShape(input[0].numer);
         }
         if (input.length > 1) {
           isVectorShape(input.slice(1, input.length));
