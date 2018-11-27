@@ -12,8 +12,8 @@ export default class RunAndStop extends React.Component {
         <RunButton />
         <StopButton />
         <CreateHandWritingFormulaArea />
-        <CreateHandWritingFormulaAreaList />
-        <RecycleHandWritingFormula />
+        {/*<CreateHandWritingFormulaAreaList />
+        <RecycleHandWritingFormula />*/}
       </div>
     );
   }

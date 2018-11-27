@@ -26,7 +26,7 @@ export default class ModeSelect extends React.Component {
           top: this.props.style.y
         }}
       >
-        <HotReloadButton />
+        {/*<HotReloadButton />
         <APIKeyShift />
         <ErrorDelete />
         <DemoButton />
@@ -34,7 +34,7 @@ export default class ModeSelect extends React.Component {
         <DemoButton3 />
         <DemoButton4 />
         <ExperimentButton />
-        <ExperimentButton2 />
+        <ExperimentButton2 />*/}
         <NormalButton />
       </div>
     );

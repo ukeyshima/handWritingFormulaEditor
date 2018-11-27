@@ -100,10 +100,28 @@ splitCodeClose = splitCode => {
     splitCode = splitCode.replace(/^[\s\n]*\(/, '');
     splitCode = splitCode.replace(/\)[\s\n;]*$/, '');
   }
+  if (/return/.test(splitCode)) {
+    splitCode = splitCode.replace('return', '');
+  }
+  if (/break/.test(splitCode)) {
+    splitCode = splitCode.replace('break', '');
+  }
   return splitCode;
 };
 codeSearchVariable = (code, variable) => {
-  const glovalSplitCode = code.split(/\/\*\d+\*\//);
+  const inCode = code.match(/\/\*\d+\*\//)[0];
+  const glovalSplitCode = code.split(inCode);
+  if (/=[\n\s]*$/.test(glovalSplitCode[0])) {
+    glovalSplitCode[0] = glovalSplitCode[0].replace(/=[\n\s]*$/, '=0;');
+  }
+  const innerJudgmentText = 'yukiShimadaHa22Sai';
+  const innerJudgment = `\n const ${innerJudgmentText}="${innerJudgmentText}";\n`;
+  if (/=>[\s\n]*$/.test(glovalSplitCode[0])) {
+    glovalSplitCode[0] += `{
+      ${innerJudgment}}`;
+  } else {
+    glovalSplitCode[0] = glovalSplitCode[0] + innerJudgment;
+  }
   const blockUpCodes = [];
   const blockUpCode = count => {
     let closeCount = count;
@@ -128,17 +146,132 @@ codeSearchVariable = (code, variable) => {
   blockUpCode(1);
   const blockUpCodeBools = [];
   blockUpCodes.forEach(e => {
-    blockUpCodeBools.push(
-      acorn.parse(splitCodeClose(e)).body.some(e => {
-        return (
-          e.type === 'VariableDeclaration' &&
-          !e.declarations.some(
-            f => f.init.type === 'ArrowFunctionExpression'
-          ) &&
-          e.declarations.some(f => f.id.name === variable)
-        );
-      })
-    );
+    try {
+      blockUpCodeBools.push(
+        acorn.parse(splitCodeClose(e)).body.some(e => {
+          return (
+            (e.type &&
+              (e.type === 'VariableDeclaration' &&
+                e.declarations &&
+                !e.declarations.some(
+                  f =>
+                    f.init &&
+                    f.init.type &&
+                    f.init.type === 'ArrowFunctionExpression'
+                ) &&
+                e.declarations.some(
+                  f => f.id && f.id.name && f.id.name === variable
+                ))) ||
+            (e.type === 'FunctionDeclaration' &&
+              e.params &&
+              e.params.some(
+                f =>
+                  f.type &&
+                  f.type === 'Identifier' &&
+                  f.name &&
+                  f.name === variable
+              ) &&
+              e.body &&
+              e.body.body &&
+              e.body.body.some(
+                f =>
+                  f.type &&
+                  f.type === 'VariableDeclaration' &&
+                  f.declarations &&
+                  f.declarations.some(
+                    g =>
+                      g.type &&
+                      g.type === 'VariableDeclarator' &&
+                      g.id &&
+                      g.id.type &&
+                      g.id.type === 'Identifier' &&
+                      g.id.name &&
+                      g.id.name === innerJudgmentText &&
+                      g.init &&
+                      g.init.type &&
+                      g.init.type === 'Literal' &&
+                      g.init.value &&
+                      g.init.value === innerJudgmentText
+                  )
+              )) ||
+            (e.type === 'VariableDeclaration' &&
+              e.declarations &&
+              e.declarations.some(
+                f =>
+                  f.init &&
+                  f.init.type &&
+                  f.init.type === 'ArrowFunctionExpression' &&
+                  f.init.params &&
+                  f.init.params.some(
+                    g =>
+                      g.type &&
+                      g.type === 'Identifier' &&
+                      g.name &&
+                      g.name === variable
+                  ) &&
+                  f.init.body &&
+                  f.init.body.body &&
+                  f.init.body.body.some(
+                    g =>
+                      g.type &&
+                      g.type === 'VariableDeclaration' &&
+                      g.declarations &&
+                      g.declarations.some(
+                        h =>
+                          h.type &&
+                          h.type === 'VariableDeclarator' &&
+                          h.id &&
+                          h.id.type &&
+                          h.id.type === 'Identifier' &&
+                          h.id.name &&
+                          h.id.name === innerJudgmentText &&
+                          h.init.type &&
+                          h.init.type === 'Literal' &&
+                          h.init.value &&
+                          h.init.value === innerJudgmentText
+                      )
+                  )
+              )) ||
+            (e.type === 'ForStatement' &&
+              e.test &&
+              e.test.type &&
+              e.test.type === 'BinaryExpression' &&
+              e.test.left &&
+              e.test.left.type &&
+              e.test.left.type === 'Identifier' &&
+              e.test.left.name &&
+              e.test.left.name === variable &&
+              e.body &&
+              e.body.type &&
+              e.body.type === 'BlockStatement' &&
+              e.body.body &&
+              e.body.body.some(
+                f =>
+                  f.type &&
+                  f.type === 'VariableDeclaration' &&
+                  f.declarations &&
+                  f.declarations.some(
+                    g =>
+                      g.type &&
+                      g.type === 'VariableDeclarator' &&
+                      g.id &&
+                      g.id.type &&
+                      g.id.type === 'Identifier' &&
+                      g.id.name &&
+                      g.id.name === innerJudgmentText &&
+                      g.init &&
+                      g.init.type &&
+                      g.init.type === 'Literal' &&
+                      g.init.value &&
+                      g.init.value === innerJudgmentText
+                  )
+              ))
+          );
+        })
+      );
+    } catch (e) {
+      console.log(e);
+    }
   });
   if (blockUpCodeBools.length > 0) {
     return blockUpCodeBools.reduce((prev, cur) => {
@@ -197,25 +330,33 @@ codeSearchFunction = (code, variable) => {
   const blockUpCodeBools = [];
   const blockDownCodeBools = [];
   blockUpCodes.forEach(e => {
-    blockUpCodeBools.push(
-      acorn.parse(splitCodeClose(e)).body.some(e => {
-        return (
-          (e.type === 'VariableDeclaration' &&
-            e.declarations.some(
-              f => f.init.type === 'ArrowFunctionExpression'
-            ) &&
-            e.declarations.some(f => f.id.name === variable)) ||
-          (e.type === 'FunctionDeclaration' && e.id.name === variable)
-        );
-      })
-    );
+    try {
+      blockUpCodeBools.push(
+        acorn.parse(splitCodeClose(e)).body.some(e => {
+          return (
+            (e.type === 'VariableDeclaration' &&
+              e.declarations.some(
+                f => f.init.type === 'ArrowFunctionExpression'
+              ) &&
+              e.declarations.some(f => f.id.name === variable)) ||
+            (e.type === 'FunctionDeclaration' && e.id.name === variable)
+          );
+        })
+      );
+    } catch (e) {
+      console.log(e);
+    }
   });
   blockDownCodes.forEach(e => {
-    blockDownCodeBools.push(
-      acorn.parse(splitCodeClose(e)).body.some(e => {
-        return e.type === 'FunctionDeclaration' && e.id.name === variable;
-      })
-    );
+    try {
+      blockDownCodeBools.push(
+        acorn.parse(splitCodeClose(e)).body.some(e => {
+          return e.type === 'FunctionDeclaration' && e.id.name === variable;
+        })
+      );
+    } catch (e) {
+      console.log(e);
+    }
   });
   if (blockUpCodeBools.length > 0 && blockDownCodeBools.length > 0) {
     return (
@@ -256,15 +397,55 @@ codeSearchArray = (code, variable) => {
   blockUpCode(1);
   const blockUpCodeBools = [];
   blockUpCodes.forEach(e => {
-    blockUpCodeBools.push(
-      acorn.parse(splitCodeClose(e)).body.some(e => {
-        return (
-          e.type === 'VariableDeclaration' &&
-          e.declarations.some(f => f.init.type === 'ArrayExpression') &&
-          e.declarations.some(f => f.id.name === variable)
-        );
-      })
-    );
+    try {
+      blockUpCodeBools.push(
+        acorn.parse(splitCodeClose(e)).body.some(e => {
+          return (
+            (e.type === 'VariableDeclaration' &&
+              e.declarations.some(f => f.init.type === 'ArrayExpression') &&
+              e.declarations.some(f => f.id.name === variable)) ||
+            (e.type === 'FunctionDeclaration' &&
+              e.params.some(
+                f => f.type === 'Identifier' && f.name === variable
+              ) &&
+              e.body.body.some(
+                f =>
+                  f.type === 'VariableDeclaration' &&
+                  f.declarations.some(
+                    g =>
+                      g.type === 'VariableDeclarator' &&
+                      g.id.type === 'Identifier' &&
+                      g.id.name === innerJudgmentText &&
+                      g.init.type === 'Literal' &&
+                      g.init.value === innerJudgmentText
+                  )
+              )) ||
+            (e.type === 'VariableDeclaration' &&
+              e.declarations.some(
+                f =>
+                  f.init.type === 'ArrowFunctionExpression' &&
+                  f.init.params.some(
+                    g => g.type === 'Identifier' && g.name === variable
+                  ) &&
+                  f.init.body.body.some(
+                    g =>
+                      g.type === 'VariableDeclaration' &&
+                      g.declarations.some(
+                        h =>
+                          h.type === 'VariableDeclarator' &&
+                          h.id.type === 'Identifier' &&
+                          h.id.name === innerJudgmentText &&
+                          h.init.type === 'Literal' &&
+                          h.init.value === innerJudgmentText
+                      )
+                  )
+              ))
+          );
+        })
+      );
+    } catch (e) {
+      console.log(e);
+    }
   });
   if (blockUpCodeBools.length > 0) {
     return blockUpCodeBools.reduce((prev, cur) => {
@@ -285,6 +466,7 @@ radix = input => {
 isVector = input => {
   let variable = [];
   let variableArray = [];
+  let variableFunction = [];
   const isVectorShape = input => {
     if (!input) return;
     if (input.length === 0) return;
@@ -308,19 +490,46 @@ isVector = input => {
       case 'mathord':
         const vars = [];
         let index = 0;
+        let functionFlag = false;
         for (let i = 0; i < input.length; i++) {
           if (input[i].type === 'mathord' || input[i].type === 'textord') {
             vars.push(input[i]);
             index++;
+          } else if (input[i].type === 'leftright') {
+            const varia = shape(vars).split('*');
+            if (codeSearchFunction(code, varia[varia.length - 1])) {
+              variable = variable.concat(varia.slice(0, varia.length - 1));
+              variableFunction.push(varia[varia.length - 1]);
+              if (input.length > index) {
+                isVectorShape(input.slice(index, input.length));
+              }
+              functionFlag = true;
+            } else {
+              break;
+            }
           } else {
             break;
           }
         }
-        const varia = shape(vars).split('*');
-        variable = variable.concat(varia);
-        if (input.length > 1) {
-          isVectorShape(input.slice(index, input.length));
+        if (!functionFlag) {
+          const piIndex = vars.findIndex(e => e.text === '\\pi');
+          if (piIndex !== -1) {
+            if (piIndex !== 0) {
+              const varia = shape(vars.slice(0, piIndex)).split('*');
+              variable = variable.concat(varia);
+            }
+            if (input.length > piIndex + 1) {
+              isVectorShape(input.slice(piIndex + 1, input.length));
+            }
+          } else {
+            const varia = shape(vars).split('*');
+            variable = variable.concat(varia);
+            if (input.length > index) {
+              isVectorShape(input.slice(index, input.length));
+            }
+          }
         }
+
         break;
       default:
         if (input[0].hasOwnProperty('body')) {
@@ -352,15 +561,34 @@ isVector = input => {
   isVectorShape(input);
   variable = variable.filter((x, i, self) => self.indexOf(x) === i);
   variableArray = variableArray.filter((x, i, self) => self.indexOf(x) === i);
+  variableFunction = variableFunction.filter(
+    (x, i, self) => self.indexOf(x) === i
+  );
   let str = '';
   variable.forEach(e => {
-    str += `let ${e}=0;`;
+    if (!/^\d*$/.test(e)) {
+      str += `let ${e}=0;`;
+    }
   });
   variableArray.forEach(e => {
-    str += `let ${e}=[];`;
+    if (!/^\d*$/.test(e)) {
+      str += `let ${e}=[];`;
+    }
   });
+  variableFunction.forEach(e => {
+    if (!/^\d*$/.test(e)) {
+      str += `let ${e}=()=>{};`;
+    }
+  });
+  if (input[0] && input[0].hasOwnProperty('type') && input[0].type === 'atom') {
+    input = input.slice(1, input.length);
+  }
   str += shape(input);
-  return Array.isArray(eval(str));
+  try {
+    return Array.isArray(eval(str));
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 frac = input => {
@@ -407,9 +635,9 @@ leftright = input => {
     return `Math.floor(${shape(input[0].body)})${nextMulti(input, 1)}`;
   } else if (input[0].left === '|' && input[0].right === '|') {
     if (isVector(input[0].body)) {
-      return `${shape(
+      return `Math.sqrt(${shape(
         input[0].body
-      )}.reduce((pre,cur)=>pre+Math.pow(cur,2),0)${nextMulti(input, 1)}`;
+      )}.reduce((pre,cur)=>pre+Math.pow(cur,2),0))s${nextMulti(input, 1)}`;
     } else {
       return `Math.abs(${shape(input[0].body)})${nextMulti(input, 1)}`;
     }
@@ -906,32 +1134,50 @@ vecShape = input => {
   switch (input[0].type) {
     case 'accent':
       if (input.length > 1 && input[1].type === 'accent') {
-        result = `${shape(
-          input[0].base.body
-        )}.reduce((pre,cur,i)=>pre+cur*${shape(input[1].base.body)}[i],0)${
-          input.length > 2 ? vecShape(input.slice(2, input.length)) : ''
-        }`;
+        result = (() => {
+          const vari = shape(input[1].base.body);
+          const pre = vari.split('.')[0] === 'pre' ? 'pre1' : 'pre';
+          const cur = vari.split('.')[0] === 'cur' ? 'cur1' : 'cur';
+          const i = vari.split('.')[0] === 'i' ? 'i1' : 'i';
+          return `${shape(
+            input[0].base.body
+          )}.reduce((${pre},${cur},${i})=>${pre}+${cur}*${vari}[${i}],0)${
+            input.length > 2 ? vecShape(input.slice(2, input.length)) : ''
+          }`;
+        })();
       } else if (
         input.length > 1 &&
         input[1].type === 'leftright' &&
         input[1].type === 'array'
       ) {
-        result = `${shape(
-          input[0].base.body
-        )}.reduce((pre,cur,i)=>pre+cur*${matrixLeftRightShape(input[1])}[i],0)${
-          input.length > 2 ? vecShape(input.slice(2, input.length)) : ''
-        }`;
+        result = (() => {
+          const vari = matrixLeftRightShape(input[1]);
+          const pre = vari.split('.')[0] === 'pre' ? 'pre1' : 'pre';
+          const cur = vari.split('.')[0] === 'cur' ? 'cur1' : 'cur';
+          const i = vari.split('.')[0] === 'i' ? 'i1' : 'i';
+          return `${shape(
+            input[0].base.body
+          )}.reduce((${pre},${cur},${i})=>${pre}+${cur}*${vari}[${i}],0)${
+            input.length > 2 ? vecShape(input.slice(2, input.length)) : ''
+          }`;
+        })();
       } else if (
         input.length > 2 &&
         input[1].type === 'atom' &&
         input[1].text === '\\cdot' &&
         input[2].type === 'accent'
       ) {
-        result = `${shape(
-          input[0].base.body
-        )}.reduce((pre,cur,i)=>pre+cur*${shape(input[2].base.body)}[i],0)${
-          input.length > 3 ? vecShape(input.slice(3, input.length)) : ''
-        }`;
+        result = (() => {
+          const vari = shape(input[2].base.body);
+          const pre = vari.split('.')[0] === 'pre' ? 'pre1' : 'pre';
+          const cur = vari.split('.')[0] === 'cur' ? 'cur1' : 'cur';
+          const i = vari.split('.')[0] === 'i' ? 'i1' : 'i';
+          return `${shape(
+            input[0].base.body
+          )}.reduce((${pre},${cur},${i})=>${pre}+${cur}*${vari}[${i}],0)${
+            input.length > 3 ? vecShape(input.slice(3, input.length)) : ''
+          }`;
+        })();
       } else if (
         input.length > 2 &&
         input[1].type === 'atom' &&
@@ -939,11 +1185,17 @@ vecShape = input => {
         input[2].type === 'leftright' &&
         input[2].type === 'array'
       ) {
-        result = `${shape(
-          input[0].base.body
-        )}.reduce((pre,cur,i)=>pre+cur*${matrixLeftRightShape(input[2])}[i],0)${
-          input.length > 3 ? vecShape(input.slice(3, input.length)) : ''
-        }`;
+        result = (() => {
+          const vari = matrixLeftRightShape(input[2]);
+          const pre = vari.split('.')[0] === 'pre' ? 'pre1' : 'pre';
+          const cur = vari.split('.')[0] === 'cur' ? 'cur1' : 'cur';
+          const i = vari.split('.')[0] === 'i' ? 'i1' : 'i';
+          return `${shape(
+            input[0].base.body
+          )}.reduce((${pre},${cur},${i})=>${pre}+${cur}*${vari}[${i}],0)${
+            input.length > 3 ? vecShape(input.slice(3, input.length)) : ''
+          }`;
+        })();
       } else {
         result = `${shape(input[0].base.body)}${
           input.length > 1 ? vecShape(input.slice(1, input.length)) : ''
@@ -982,13 +1234,16 @@ vecShape = input => {
                   : ''
               }`;
             } else {
-              return `.map((e,i)=>e${shape(input[0])}${vecShape(
-                input.slice(1, startIndex + 1)
-              )}[i])${
-                input.length > startIndex + 1
-                  ? vecShape(input.slice(startIndex + 1, input.length))
-                  : ''
-              }`;
+              return (() => {
+                const vari = vecShape(input.slice(1, startIndex + 1));
+                const e = vari.split('.')[0] === 'e' ? 'e1' : 'e';
+                const i = vari.split('.')[0] === 'i' ? 'i1' : 'i';
+                return `.map((${e},${i})=>${e}${shape(input[0])}${vari}[${i}])${
+                  input.length > startIndex + 1
+                    ? vecShape(input.slice(startIndex + 1, input.length))
+                    : ''
+                }`;
+              })();
             }
           })();
           break;
@@ -1111,9 +1366,24 @@ shape = input => {
             return pre + cur.name.replace('\\', '');
           }
         }, '');
-      return `function ${variable}(${shape(
-        frontEqual[frontEqual.length - 1].body
-      )}){
+      const argument = frontEqual[frontEqual.length - 1].body.reduce(
+        (pre, cur) => {
+          if (cur.hasOwnProperty('text')) {
+            return pre + cur.text;
+          } else if (cur.hasOwnProperty('name')) {
+            return pre + cur.name.replace('\\', '');
+          }
+        },
+        ''
+      );
+      const inCode = code.match(/\/\*\d+\*\//)[0];
+      code = code.replace(
+        inCode,
+        `function ${variable}(${argument}){
+       ${inCode}
+     }`
+      );
+      return `function ${variable}(${argument}){
                  return ${shape(input.slice(index + 1, input.length))};
               }`;
     } else if (arrayIndex === -1) {
