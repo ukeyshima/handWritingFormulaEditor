@@ -6,9 +6,8 @@ import DemoButton from './demoButton.jsx';
 import DemoButton2 from './demoButton2.jsx';
 import DemoButton3 from './demoButton3.jsx';
 import DemoButton4 from './demoButton4.jsx';
-import ExperimentButton from './experimentButton.jsx';
-import ExperimentButton2 from './experimentButton2.jsx';
-import NormalButton from './normalButton.jsx';
+import NoiseButton from './noiseButton.jsx';
+import DefaultButton from './defaultButton.jsx';
 import { inject, observer } from 'mobx-react';
 
 @inject('state')
@@ -17,9 +16,9 @@ export default class ModeSelect extends React.Component {
   render() {
     return (
       <div
-        touch-action="auto"
-        className="dropDown"
-        id="modeSelect"
+        touch-action='auto'
+        className='dropDown'
+        id='modeSelect'
         style={{
           position: 'absolute',
           left: this.props.style.x,
@@ -33,9 +32,9 @@ export default class ModeSelect extends React.Component {
         <DemoButton2 />
         <DemoButton3 />
         <DemoButton4 />
-        <ExperimentButton />
         <ExperimentButton2 />*/}
-        <NormalButton />
+        <NoiseButton />
+        <DefaultButton />
       </div>
     );
   }

@@ -12,9 +12,7 @@ export default class RunAreaHeader extends React.Component {
     super(props);
     this.state = {
       x: 0,
-      y: 0,
-      iframeX: 0,
-      iframeY: 0
+      y: 0
     };
   }
   handleMouseAndTouchDown = e => {
@@ -40,44 +38,40 @@ export default class RunAreaHeader extends React.Component {
       this.handleMouseAndTouchUp
     );
     this.setState({
-      x: e.hasOwnProperty('changedTouches')
-        ? e.changedTouches[0].pageX
-        : e.pageX,
-      y: e.hasOwnProperty('changedTouches')
-        ? e.changedTouches[0].pageY
-        : e.pageY
+      x: 'changedTouches' in e ? e.changedTouches[0].pageX : e.pageX,
+      y: 'changedTouches' in e ? e.changedTouches[0].pageY : e.pageY
     });
   };
   handleMouseAndTouchMove = e => {
     const position = this.props.runAreaPosition;
+    const x = 'changedTouches' in e ? e.changedTouches[0].pageX : e.pageX;
+    const y = 'changedTouches' in e ? e.changedTouches[0].pageY : e.pageY;
     this.props.updateRunAreaPosition(
-      position.x + e.pageX - this.state.x,
-      position.y + e.pageY - this.state.y
+      position.x + x - this.state.x,
+      position.y + y - this.state.y
     );
     this.setState({
-      x: e.hasOwnProperty('changedTouches')
-        ? e.changedTouches[0].pageX
-        : e.pageX,
-      y: e.hasOwnProperty('changedTouches')
-        ? e.changedTouches[0].pageY
-        : e.pageY
+      x: x,
+      y: y
     });
   };
   handleIframeMouseAndTouchMove = e => {
     const iframe = this.props.iframeElement;
     const iframePosition = iframe.getBoundingClientRect();
     const position = this.props.runAreaPosition;
+    const x =
+      ('changedTouches' in e ? e.changedTouches[0].pageX : e.pageX) +
+      Math.floor(iframePosition.left);
+    const y =
+      ('changedTouches' in e ? e.changedTouches[0].pageY : e.pageY) +
+      Math.floor(iframePosition.top);
     this.props.updateRunAreaPosition(
-      position.x + e.pageX + Math.floor(iframePosition.left) - this.state.x,
-      position.y + e.pageY + Math.floor(iframePosition.top) - this.state.y
+      position.x + x - this.state.x,
+      position.y + y - this.state.y
     );
     this.setState({
-      x: e.hasOwnProperty('changedTouches')
-        ? e.changedTouches[0].pageX + Math.floor(iframePosition.left)
-        : e.pageX + Math.floor(iframePosition.left),
-      iframeY: e.hasOwnProperty('changedTouches')
-        ? e.changedTouches[0].pageY + Math.floor(iframePosition.top)
-        : e.pageY + Math.floor(iframePosition.top)
+      x: x,
+      y: y
     });
   };
   handleMouseAndTouchUp = () => {
@@ -112,7 +106,7 @@ export default class RunAreaHeader extends React.Component {
   render() {
     return (
       <div
-        touch-action="none"
+        touch-action='none'
         onMouseDown={this.handleMouseAndTouchDown}
         onTouchStart={this.handleMouseAndTouchDown}
         style={{

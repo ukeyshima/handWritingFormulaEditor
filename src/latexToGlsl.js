@@ -170,10 +170,10 @@ typeDetermination = expression => {
       result = 'vec3';
       break;
     case 'const highp 4-component vector of float':
-      result = 'vec3';
+      result = 'vec4';
       break;
     case 'highp 4-component vector of float':
-      result = 'vec3';
+      result = 'vec4';
       break;
     case 'const highp 2X2 matrix of float':
       result = 'mat2';

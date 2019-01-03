@@ -1,8 +1,8 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-import css from './normal/style.txt';
-import html from './normal/index.txt';
-import js from './normal/main.txt';
+import css from './noise/style.txt';
+import html from './noise/index.txt';
+import js from './noise/main.txt';
 
 @inject(({ state }) => ({
   textFile: state.textFile,
@@ -19,7 +19,7 @@ import js from './normal/main.txt';
   pushTextFile: state.pushTextFile
 }))
 @observer
-export default class NormalButton extends React.Component {
+export default class NoiseButton extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -104,7 +104,7 @@ export default class NormalButton extends React.Component {
         onMouseLeave={this.handleMouseLeave}
         onMouseEnter={this.handleMouseEnter}
       >
-        normal
+        noise
       </button>
     );
   }

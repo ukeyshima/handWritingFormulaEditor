@@ -1,8 +1,8 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-import css from './experiment/style.txt';
-import html from './experiment/index.txt';
-import js from './experiment/main.txt';
+import css from './default/style.txt';
+import html from './default/index.txt';
+import js from './default/main.txt';
 
 @inject(({ state }) => ({
   textFile: state.textFile,
@@ -19,7 +19,7 @@ import js from './experiment/main.txt';
   pushTextFile: state.pushTextFile
 }))
 @observer
-export default class ExperimentButton extends React.Component {
+export default class DefalutButton extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -104,7 +104,7 @@ export default class ExperimentButton extends React.Component {
         onMouseLeave={this.handleMouseLeave}
         onMouseEnter={this.handleMouseEnter}
       >
-        experiment
+        default
       </button>
     );
   }
