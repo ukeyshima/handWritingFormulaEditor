@@ -2,15 +2,14 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import * as MyScriptJS from 'myscript/dist/myscript.esm.js';
-import 'myscript/dist/myscript.min.css';
+import myscriptStyle from 'myscript/dist/myscript.min.css';
 import latexToJs from './latexToJs';
 import latexToGlsl from './latexToGlsl';
-import 'katex/dist/katex.min.css';
+import katexStyle from 'katex/dist/katex.min.css';
 import { FaReply } from 'react-icons/fa';
 import { FaShare } from 'react-icons/fa';
 import { FaSyncAlt } from 'react-icons/fa';
 import { FaAngleDown } from 'react-icons/fa';
-import { toJS } from 'mobx';
 
 @inject(({ state }, props) => {
   return {
@@ -55,10 +54,14 @@ export default class HandWritingFormulaArea extends React.Component {
     };
   }
   componentWillUnmount() {
+    katexStyle.unuse();
+    myscriptStyle.unuse();
     this.refs.editor.removeEventListener('error', this.errorFunc);
     this.refs.editor.removeEventListener('exported', this.exportFunc);
   }
   componentDidMount() {
+    katexStyle.use();
+    myscriptStyle.use();
     this.editor = MyScriptJS.register(this.refs.editor, {
       recognitionParams: {
         type: 'MATH',
@@ -405,51 +408,51 @@ export default class HandWritingFormulaArea extends React.Component {
     return (
       <div
         style={this.props.style}
-        ref="handWritingFormulaArea"
-        id="handWritingFormulaArea"
+        ref='handWritingFormulaArea'
+        id='handWritingFormulaArea'
       >
-        <div id="resultVariableView">{this.props.resultVariable}</div>
+        <div id='resultVariableView'>{this.props.resultVariable}</div>
         <button
-          touch-action="auto"
-          className="handWritingFormulaAreaButton"
-          id="deleteButton"
-          ref="delete"
+          touch-action='auto'
+          className='handWritingFormulaAreaButton'
+          id='deleteButton'
+          ref='delete'
           onClick={this.handleDelete}
         >
           D
         </button>
         <button
-          touch-action="auto"
-          className="handWritingFormulaAreaButton"
-          id="clearButton"
-          ref="clear"
+          touch-action='auto'
+          className='handWritingFormulaAreaButton'
+          id='clearButton'
+          ref='clear'
           onClick={this.handleClear}
         >
           C
         </button>
         <button
-          touch-action="auto"
-          className="handWritingFormulaAreaButton"
-          id="undoButton"
-          ref="undo"
+          touch-action='auto'
+          className='handWritingFormulaAreaButton'
+          id='undoButton'
+          ref='undo'
           onClick={this.handleUndo}
         >
           <FaReply />
         </button>
         <button
-          touch-action="auto"
-          className="handWritingFormulaAreaButton"
-          id="redoButton"
-          ref="redo"
+          touch-action='auto'
+          className='handWritingFormulaAreaButton'
+          id='redoButton'
+          ref='redo'
           onClick={this.handleRedo}
         >
           <FaShare />
         </button>
         <button
-          touch-action="auto"
-          className="handWritingFormulaAreaButton"
-          id="convertButton"
-          ref="convert"
+          touch-action='auto'
+          className='handWritingFormulaAreaButton'
+          id='convertButton'
+          ref='convert'
           onClick={this.handleConvert}
         >
           <FaSyncAlt />
@@ -469,18 +472,18 @@ export default class HandWritingFormulaArea extends React.Component {
           <FaPlayCircle />
         </button> */}
         <button
-          touch-action="auto"
-          className="handWritingFormulaAreaButton"
-          id="insertCodeButton"
-          ref="insertCode"
+          touch-action='auto'
+          className='handWritingFormulaAreaButton'
+          id='insertCodeButton'
+          ref='insertCode'
           onClick={this.handleInsertCode}
         >
           <FaAngleDown />
         </button>
         <div
-          id="handWritingFormulaEditor"
-          ref="editor"
-          touch-action="none"
+          id='handWritingFormulaEditor'
+          ref='editor'
+          touch-action='none'
           style={{
             height: this.props.style.height,
             width: this.props.style.width
