@@ -1,18 +1,18 @@
 {
     "plugins": [
-        "transform-decorators-legacy",
-        "transform-class-properties",
-        [
-            "transform-runtime",
-            {
-                "polyfill": false,
-                "regenerator": true
-            }
-        ]
+      ["@babel/plugin-proposal-decorators", { "legacy": true }],
+      ["@babel/plugin-proposal-class-properties", { "loose": true }]      
     ],
     "presets": [
-        "es2015",
-        "react",
-        "stage-0"
+      [
+        "@babel/preset-env",
+        {
+          "targets": "> 0.25%, not dead",
+          "modules": false,
+          "useBuiltIns": "usage"
+        }
+      ],
+      "@babel/preset-react"
     ]
-}
+  }
+  
