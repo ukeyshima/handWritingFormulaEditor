@@ -7,8 +7,7 @@ module.exports = {
   output: {
     path: docs,
     filename: '[name].bundle.js'
-  },
-  devtool: 'inline-source-map',
+  }, 
   devServer: {
     host: '0.0.0.0',
     contentBase: docs
@@ -37,7 +36,7 @@ module.exports = {
         loader: 'json-loader'
       },
       {
-        test: /\.(txt)$/,
+        test: /\.txt$/,
         loader: 'raw-loader'
       }
     ]
