@@ -1,13 +1,13 @@
 import React from 'react';
-import HotReloadButton from './hotReloadButton.jsx';
-import APIKeyShift from './apiKeyShift.jsx';
-import ErrorDelete from './errorDelete.jsx';
-import DemoButton from './demoButton.jsx';
-import DemoButton2 from './demoButton2.jsx';
-import DemoButton3 from './demoButton3.jsx';
-import DemoButton4 from './demoButton4.jsx';
-import NoiseButton from './noiseButton.jsx';
-import DefaultButton from './defaultButton.jsx';
+import HotReloadButton from './hotReloadButton';
+import APIKeyShift from './apiKeyShift';
+import ErrorDelete from './errorDelete';
+import DemoButton from './demoButton';
+import DemoButton2 from './demoButton2';
+import DemoButton3 from './demoButton3';
+import DemoButton4 from './demoButton4';
+import NoiseButton from './noiseButton';
+import DefaultButton from './defaultButton';
 import { inject, observer } from 'mobx-react';
 
 @inject('state')

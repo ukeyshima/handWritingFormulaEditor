@@ -5,7 +5,6 @@ import vs from './demo/vertexShader.txt';
 import js from './demo/main.txt';
 import css from './demo/style.txt';
 import html from './demo/index.txt';
-import json from './demo/handWritingFormula.json';
 import { toJS } from 'mobx';
 
 @inject(({ state }) => ({

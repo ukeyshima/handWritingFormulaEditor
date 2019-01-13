@@ -1,4 +1,4 @@
-//export to "renderingObject.jsx"
+//export to "renderingObject"
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import AceEditor from 'react-ace';

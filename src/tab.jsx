@@ -1,7 +1,7 @@
 import React from 'react';
-import AddButton from './addButton.jsx';
+import AddButton from './addButton';
 import { inject, observer } from 'mobx-react';
-import TextFileButton from './textFileButton.jsx';
+import TextFileButton from './textFileButton';
 
 @inject(({ state }) => ({
   textFile: state.textFile

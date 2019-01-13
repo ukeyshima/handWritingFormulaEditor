@@ -1,4 +1,4 @@
-//export to modeSelect.jsx
+//export to modeSelect
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import { FaPencilAlt } from 'react-icons/fa';

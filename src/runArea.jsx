@@ -1,5 +1,5 @@
 import React from 'react';
-import RunAreaHeader from './runAreaHeader.jsx';
+import RunAreaHeader from './runAreaHeader';
 import { inject, observer } from 'mobx-react';
 
 @inject(({ state }) => ({

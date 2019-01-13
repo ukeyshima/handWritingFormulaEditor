@@ -1,9 +1,9 @@
 import React from 'react';
-import RunButton from './runButton.jsx';
-import StopButton from './stopButton.jsx';
-import CreateHandWritingFormulaArea from './createHandWritingFormulaAreaButton.jsx';
-import CreateHandWritingFormulaAreaList from './createHandWritingFormulaAreaList.jsx';
-import RecycleHandWritingFormula from './recycleHandWritingFormula.jsx';
+import RunButton from './runButton';
+import StopButton from './stopButton';
+import CreateHandWritingFormulaArea from './createHandWritingFormulaAreaButton';
+import CreateHandWritingFormulaAreaList from './createHandWritingFormulaAreaList';
+import RecycleHandWritingFormula from './recycleHandWritingFormula';
 
 export default class RunAndStop extends React.Component {
   render() {

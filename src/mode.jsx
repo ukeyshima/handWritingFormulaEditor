@@ -1,5 +1,5 @@
 import React from 'react';
-import ModeSelect from './modeSelect.jsx';
+import ModeSelect from './modeSelect';
 
 export default class Mode extends React.Component {
   constructor(props) {

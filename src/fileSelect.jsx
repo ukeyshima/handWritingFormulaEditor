@@ -1,6 +1,6 @@
 import React from 'react';
-import SaveButton from './saveButton.jsx';
-import LoadButton from './loadButton.jsx';
+import SaveButton from './saveButton';
+import LoadButton from './loadButton';
 import { inject, observer } from 'mobx-react';
 
 @inject('state')

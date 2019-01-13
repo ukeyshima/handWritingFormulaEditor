@@ -1,11 +1,11 @@
 import style from './style.scss';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import RunAndStop from './runAndStop.jsx';
-import RenderingObject from './renderingObject.jsx';
+import RunAndStop from './runAndStop';
+import RenderingObject from './renderingObject';
 import 'pepjs';
-import Header from './header.jsx';
-import Tab from './tab.jsx';
+import Header from './header';
+import Tab from './tab';
 import { Provider, inject, observer } from 'mobx-react';
 import State from './store.js';
 

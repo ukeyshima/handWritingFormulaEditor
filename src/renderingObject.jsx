@@ -1,8 +1,8 @@
 import React from 'react';
-import Editor from './editor.jsx';
-import RunArea from './runArea.jsx';
-import ListArea from './listArea.jsx';
-import HandWritingFormulaAreaWrapper from './handwritingFormulaAreaWrapper.jsx';
+import Editor from './editor';
+import RunArea from './runArea';
+import ListArea from './listArea';
+import HandWritingFormulaAreaWrapper from './handwritingFormulaAreaWrapper';
 import { inject, observer } from 'mobx-react';
 
 @inject(({ state }) => ({

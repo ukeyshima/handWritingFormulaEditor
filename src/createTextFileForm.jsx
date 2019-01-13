@@ -1,6 +1,6 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-import ExtensionSelection from './extensionSelection.jsx';
+import ExtensionSelection from './extensionSelection';
 import { toJS } from 'mobx';
 
 @inject(({ state }) => ({

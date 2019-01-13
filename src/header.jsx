@@ -1,6 +1,6 @@
 import React from 'react';
-import File from './file.jsx';
-import Mode from './mode.jsx';
+import File from './file';
+import Mode from './mode';
 
 export default class Header extends React.Component {
   render() {

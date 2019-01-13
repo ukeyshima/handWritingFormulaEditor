@@ -1,5 +1,5 @@
 import React from 'react';
-import FileSelect from './fileSelect.jsx';
+import FileSelect from './fileSelect';
 
 export default class File extends React.Component {
   constructor(props) {

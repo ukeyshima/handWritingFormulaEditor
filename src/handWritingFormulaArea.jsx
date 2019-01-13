@@ -1,4 +1,4 @@
-//export to "renderingObject.jsx"
+//export to "renderingObject"
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import * as MyScriptJS from 'myscript/dist/myscript.esm.js';

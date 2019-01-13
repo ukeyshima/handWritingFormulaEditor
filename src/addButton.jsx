@@ -1,5 +1,5 @@
 import React from 'react';
-import CreateTextFileForm from './createTextFileForm.jsx';
+import CreateTextFileForm from './createTextFileForm';
 
 export default class AddButton extends React.Component {
   constructor(props) {

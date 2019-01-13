@@ -1,5 +1,5 @@
 import React from 'react';
-import Extensions from './extensions.jsx';
+import Extensions from './extensions';
 
 export default class ExtensionSelection extends React.Component {
   constructor(props) {
